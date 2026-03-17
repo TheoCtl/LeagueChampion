@@ -53,7 +53,13 @@ def generate_challenger(challenger_number):
         level = base_level + random.randint(-level_variance, level_variance)
         level = max(5, level)
         poke_data = POKEMON_DB[species]
-        available_moves = poke_data["learnable_moves"]
+        # Derive available moves from move_tiers (flatten all tiers)
+        available_moves = []
+        for tier_list in poke_data.get("move_tiers", {}).values():
+            available_moves.extend(tier_list)
+        available_moves = list(dict.fromkeys(available_moves))  # dedupe, keep order
+        if not available_moves:
+            available_moves = ["Tackle"]
 
         # Number of moves scales with level
         if level < 15:

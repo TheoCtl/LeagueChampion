@@ -4,6 +4,7 @@ All Pygame scenes: Title, Day, Battle, Shop, League Overview, GameOver.
 """
 import pygame
 import sys
+import random
 from engine import (
     Scene, Panel, Button, Label, TextInput, HPBar, MessageLog,
     SCREEN_W, SCREEN_H, C_BG, C_BG_LIGHT, C_PANEL, C_PANEL_BORDER,
@@ -12,11 +13,16 @@ from engine import (
     draw_text, draw_type_badges, draw_pokemon_card, type_color,
 )
 from pokemon import Trainer, Pokemon
-from battle_logic import ai_choose_move, execute_move
+from battle_logic import (
+    ai_choose_move, execute_move, BattleState,
+    determine_turn_order, do_turn_end_effects, do_switch_in_effects,
+    get_effective_speed,
+)
+from enums import Status1, Weather
 from generator import generate_challenger
 from data import (
-    DEFAULT_GYM_LEADERS, DEFAULT_ELITE_FOUR, CHAMPION_STARTER_OPTIONS,
-    POKEMON_DB, MOVES_DB,
+    DEFAULT_GYM_LEADERS, DEFAULT_ELITE_FOUR,
+    POKEMON_DB, MOVES_DB, TYPE_TIERS, EVOLVES_FROM,
 )
 
 
@@ -37,17 +43,20 @@ class GameState:
 # ─── Title Scene ────────────────────────────────────────────────────
 
 class TitleScene(Scene):
-    """Name entry + team selection."""
+    """Name entry + champion draft."""
 
     def __init__(self, state):
         super().__init__()
         self.state = state
-        self.phase = "name"  # "name" -> "team"
+        self.phase = "name"  # "name" -> "draft"
         self.name_input = TextInput(SCREEN_W // 2 - 150, 380, 300, 44,
                                     placeholder="Enter your name...", font_size=22)
         self.confirm_btn = Button("Confirm", SCREEN_W // 2 - 60, 440, 120, 40,
                                   callback=self._confirm_name, font_size=18)
-        self.team_buttons = []
+        self.draft_pairs = []
+        self.draft_round = 0
+        self.draft_picks = []
+        self.draft_buttons = []
 
     def _confirm_name(self):
         name = self.name_input.text.strip()
@@ -55,26 +64,46 @@ class TitleScene(Scene):
             self.state.player_name = name
         else:
             self.state.player_name = "Champion"
-        self.phase = "team"
-        self._build_team_buttons()
+        self.phase = "draft"
+        self._build_draft()
 
-    def _build_team_buttons(self):
-        self.team_buttons = []
-        for i, option in enumerate(CHAMPION_STARTER_OPTIONS):
-            y = 250 + i * 160
-            btn = Button(
-                f"Choose: {option['label']}",
-                SCREEN_W // 2 + 120, y + 50, 180, 40,
-                callback=lambda idx=i: self._pick_team(idx),
-                font_size=16,
-                color=(60, 80, 60), hover_color=(70, 110, 70),
-                border_color=C_GREEN,
-            )
-            self.team_buttons.append((option, btn))
+    def _build_draft(self):
+        all_species = list(POKEMON_DB.keys())
+        chosen = random.sample(all_species, min(12, len(all_species)))
+        random.shuffle(chosen)
+        self.draft_pairs = [(chosen[i], chosen[i + 1]) for i in range(0, 12, 2)]
+        self.draft_round = 0
+        self.draft_picks = []
+        self._build_draft_buttons()
 
-    def _pick_team(self, idx):
-        champion_data = CHAMPION_STARTER_OPTIONS[idx]
-        # Build league
+    def _build_draft_buttons(self):
+        if self.draft_round >= len(self.draft_pairs):
+            self._finish_draft()
+            return
+        a, b = self.draft_pairs[self.draft_round]
+        self.draft_buttons = [
+            Button(f"Pick {a}", 80, 640, 200, 44,
+                   callback=lambda: self._draft_pick(a),
+                   font_size=18, color=(40, 60, 40), hover_color=(50, 80, 50),
+                   border_color=C_GREEN),
+            Button(f"Pick {b}", SCREEN_W - 280, 640, 200, 44,
+                   callback=lambda: self._draft_pick(b),
+                   font_size=18, color=(40, 60, 40), hover_color=(50, 80, 50),
+                   border_color=C_GREEN),
+        ]
+
+    def _draft_pick(self, species):
+        self.draft_picks.append(species)
+        self.draft_round += 1
+        self._build_draft_buttons()
+
+    def _finish_draft(self):
+        team_data = []
+        for species in self.draft_picks:
+            pdata = POKEMON_DB[species]
+            mt = pdata.get("move_tiers", {})
+            max_tiers = {mtype: len(tlist) for mtype, tlist in mt.items()}
+            team_data.append({"species": species, "level": 50, "move_tier_levels": max_tiers})
         gym_leaders = []
         for gl_data in DEFAULT_GYM_LEADERS:
             gym_leaders.append(Trainer(gl_data["name"], gl_data["title"],
@@ -83,7 +112,7 @@ class TitleScene(Scene):
         for e4_data in DEFAULT_ELITE_FOUR:
             elite_four.append(Trainer(e4_data["name"], e4_data["title"],
                                       e4_data["team"], e4_data.get("specialty")))
-        champion = Trainer(self.state.player_name, "Champion", champion_data["team"])
+        champion = Trainer(self.state.player_name, "Champion", team_data)
         self.state.league = gym_leaders + elite_four + [champion]
         self.state.champion = champion
         self.engine.set_scene(DayScene(self.state))
@@ -95,8 +124,8 @@ class TitleScene(Scene):
                 if result == "submit":
                     self._confirm_name()
                 self.confirm_btn.handle_event(e)
-            elif self.phase == "team":
-                for _, btn in self.team_buttons:
+            elif self.phase == "draft":
+                for btn in self.draft_buttons:
                     btn.handle_event(e)
 
     def update(self, dt):
@@ -106,11 +135,10 @@ class TitleScene(Scene):
     def draw(self, screen):
         screen.fill(C_BG)
 
-        # Title
         draw_text(screen, self.engine, "POKEMON LEAGUE CHAMPION",
-                  SCREEN_W // 2, 60, 42, C_GOLD, anchor="midtop")
+                  SCREEN_W // 2, 30, 42, C_GOLD, anchor="midtop")
         draw_text(screen, self.engine, "Defend your title. Manage your League.",
-                  SCREEN_W // 2, 115, 18, C_TEXT_DIM, anchor="midtop")
+                  SCREEN_W // 2, 80, 18, C_TEXT_DIM, anchor="midtop")
 
         if self.phase == "name":
             draw_text(screen, self.engine, "What is your name, Champion?",
@@ -118,29 +146,56 @@ class TitleScene(Scene):
             self.name_input.draw(screen, self.engine)
             self.confirm_btn.draw(screen, self.engine)
 
-        elif self.phase == "team":
-            draw_text(screen, self.engine, f"Welcome, {self.state.player_name}!  Choose your Champion team:",
-                      SCREEN_W // 2, 190, 22, C_ACCENT, anchor="midtop")
+        elif self.phase == "draft":
+            if self.draft_round < len(self.draft_pairs):
+                draw_text(screen, self.engine,
+                          f"CHAMPION DRAFT — Round {self.draft_round + 1}/6",
+                          SCREEN_W // 2, 110, 26, C_ACCENT, anchor="midtop")
+                draw_text(screen, self.engine, "Choose one Pokemon from each pair:",
+                          SCREEN_W // 2, 142, 16, C_TEXT_DIM, anchor="midtop")
 
-            for i, (option, btn) in enumerate(self.team_buttons):
-                y = 250 + i * 160
-                panel = Panel(80, y, SCREEN_W - 160, 145)
-                panel.draw(screen, self.engine)
+                a, b = self.draft_pairs[self.draft_round]
+                self._draw_draft_card(screen, a, 40, 170, SCREEN_W // 2 - 60)
+                self._draw_draft_card(screen, b, SCREEN_W // 2 + 20, 170, SCREEN_W // 2 - 60)
 
-                draw_text(screen, self.engine, option["label"],
-                          100, y + 10, 22, C_GOLD)
+                draw_text(screen, self.engine, "OR",
+                          SCREEN_W // 2, 400, 28, C_GOLD, anchor="center")
 
-                for j, pdata in enumerate(option["team"]):
-                    py = y + 38 + j * 28
-                    draw_text(screen, self.engine,
-                              f"{pdata['species']}  Lv.{pdata['level']}",
-                              110, py, 16, C_TEXT_BRIGHT)
-                    # Moves
-                    moves_str = ", ".join(pdata["moves"])
-                    draw_text(screen, self.engine, moves_str,
-                              280, py, 14, C_TEXT_DIM)
+                for btn in self.draft_buttons:
+                    btn.draw(screen, self.engine)
 
-                btn.draw(screen, self.engine)
+            if self.draft_picks:
+                draw_text(screen, self.engine, "Your picks:",
+                          SCREEN_W // 2, 700, 14, C_TEXT_DIM, anchor="midtop")
+                picks_str = ", ".join(self.draft_picks)
+                draw_text(screen, self.engine, picks_str,
+                          SCREEN_W // 2, 718, 14, C_GREEN, anchor="midtop")
+
+    def _draw_draft_card(self, screen, species, x, y, w):
+        pdata = POKEMON_DB[species]
+        panel = Panel(x, y, w, 440)
+        panel.draw(screen, self.engine)
+
+        draw_text(screen, self.engine, species, x + 20, y + 10, 24, C_TEXT_BRIGHT)
+        draw_type_badges(screen, self.engine, pdata["types"], x + 20, y + 40)
+
+        stats = pdata["stats"]
+        sy = y + 70
+        for stat_name in ["hp", "atk", "def", "spa", "spd", "spe"]:
+            draw_text(screen, self.engine,
+                      f"{stat_name.upper()}: {stats[stat_name]}",
+                      x + 20, sy, 14, C_TEXT)
+            sy += 18
+
+        sy += 8
+        draw_text(screen, self.engine, "Move Types:", x + 20, sy, 14, C_ACCENT)
+        sy += 20
+        for mtype, tlist in pdata.get("move_tiers", {}).items():
+            moves_str = " > ".join(tlist)
+            draw_text(screen, self.engine,
+                      f"  {mtype}: {moves_str}",
+                      x + 20, sy, 12, C_TEXT_DIM)
+            sy += 16
 
 
 # ─── Day Scene ──────────────────────────────────────────────────────
@@ -281,9 +336,27 @@ class BattleScene(Scene):
         self.anim_timer = 0
         self.anim_delay = 0.6
         self.result = None  # True = player won, False = lost
+        self.battle_state = BattleState()
+        # Reset battle state for starting Pokemon
+        self.player_poke.reset_battle_state()
+        self.enemy_poke.reset_battle_state()
         self._build_move_buttons()
         self.log.add(f"{player_trainer.name} sends out {self.player_poke.species}!", C_GREEN)
         self.log.add(f"{enemy_trainer.name} sends out {self.enemy_poke.species}!", C_RED)
+        # Switch-in effects for initial Pokemon
+        for ev in do_switch_in_effects(self.player_poke, 0, self.battle_state):
+            self._log_event(ev)
+        for ev in do_switch_in_effects(self.enemy_poke, 1, self.battle_state):
+            self._log_event(ev)
+        # Apply Intimidate cross-side
+        if self.player_poke.ability == "Intimidate":
+            actual = self.enemy_poke.change_stat("atk", -1)
+            if actual:
+                self.log.add(f"{self.enemy_poke.species}'s Attack fell! (Intimidate)", C_YELLOW)
+        if self.enemy_poke.ability == "Intimidate":
+            actual = self.player_poke.change_stat("atk", -1)
+            if actual:
+                self.log.add(f"{self.player_poke.species}'s Attack fell! (Intimidate)", C_YELLOW)
 
     def _build_move_buttons(self):
         self.move_buttons = []
@@ -293,8 +366,11 @@ class BattleScene(Scene):
             md = MOVES_DB.get(move_name, {})
             mtype = md.get("type", "Normal")
             mcolor = type_color(mtype)
-            cat = "PHY" if md.get("category") == "physical" else "SPE"
-            label = f"{move_name}  ({mtype} {cat} P:{md.get('power', '?')})"
+            raw_cat = md.get("category", "physical")
+            cat = "PHY" if raw_cat == "physical" else ("STA" if raw_cat == "status" else "SPE")
+            pw = md.get("power", 0)
+            pw_str = str(pw) if pw else "-"
+            label = f"{move_name}  ({mtype} {cat} P:{pw_str})"
 
             col = i % 2
             row = i // 2
@@ -326,35 +402,56 @@ class BattleScene(Scene):
                          border_color=C_GREEN)
             self.switch_buttons.append(btn)
 
+    def _log_event(self, ev):
+        """Log a battle event without animation queue (for instant display)."""
+        t = ev.get("type", "")
+        if t == "weather":
+            self.log.add(f"The weather changed to {ev['weather']}!", C_ACCENT)
+        elif t == "ability_announce":
+            self.log.add(f"{ev['pokemon']}'s {ev['ability']}!", C_YELLOW)
+        elif t == "hazard_damage":
+            self.log.add(f"{ev['target']} was hurt by {ev['hazard']}! ({ev['damage']} dmg)", C_RED)
+        elif t == "status_inflict":
+            self.log.add(f"{ev['target']} was afflicted with {ev['status']}!", C_YELLOW)
+        elif t == "hazard_clear":
+            self.log.add(f"{ev['target']} absorbed the hazards!", C_GREEN)
+        elif t == "faint":
+            self.log.add(f"{ev['target']} fainted!", C_RED)
+
     def _select_move(self, move_name):
         if self.phase != "choose_move":
             return
         self.phase = "animating"
-        enemy_move = ai_choose_move(self.enemy_poke, self.player_poke)
+        bs = self.battle_state
+        enemy_move = ai_choose_move(self.enemy_poke, self.player_poke, bs)
 
-        # Determine order
-        if self.player_poke.spe >= self.enemy_poke.spe:
+        # Determine turn order using full speed/priority system
+        first, second = determine_turn_order(
+            self.player_poke, self.enemy_poke, move_name, enemy_move, bs
+        )
+        if first == "player":
             turns = [
-                (self.player_poke, self.enemy_poke, move_name, "player"),
-                (self.enemy_poke, self.player_poke, enemy_move, "enemy"),
+                (self.player_poke, self.enemy_poke, move_name, "player", 0),
+                (self.enemy_poke, self.player_poke, enemy_move, "enemy", 1),
             ]
         else:
             turns = [
-                (self.enemy_poke, self.player_poke, enemy_move, "enemy"),
-                (self.player_poke, self.enemy_poke, move_name, "player"),
+                (self.enemy_poke, self.player_poke, enemy_move, "enemy", 1),
+                (self.player_poke, self.enemy_poke, move_name, "player", 0),
             ]
 
         # Collect all events
         all_events = []
-        for atk, dfn, move, side in turns:
-            events = execute_move(atk, dfn, move)
+        for atk, dfn, move, side, atk_side in turns:
+            if atk.is_fainted():
+                break
+            events = execute_move(atk, dfn, move, bs, atk_side)
             for ev in events:
                 ev["side"] = side
             all_events.extend(events)
             # If defender fainted, handle switching
             if dfn.is_fainted():
                 if side == "player":
-                    # Enemy fainted
                     next_poke = self.enemy_trainer.first_available()
                     if next_poke:
                         all_events.append({"type": "send_out", "side": "enemy",
@@ -363,26 +460,94 @@ class BattleScene(Scene):
                     else:
                         all_events.append({"type": "battle_end", "winner": "player"})
                 else:
-                    # Player fainted
                     next_poke = self.player_trainer.first_available()
                     if next_poke:
                         all_events.append({"type": "need_switch", "side": "player"})
                     else:
                         all_events.append({"type": "battle_end", "winner": "enemy"})
-                break  # Don't let fainted pokemon attack
+                break
+            # If attacker fainted (recoil, Life Orb, etc.)
+            if atk.is_fainted():
+                if side == "player":
+                    next_poke = self.player_trainer.first_available()
+                    if next_poke:
+                        all_events.append({"type": "need_switch", "side": "player"})
+                    else:
+                        all_events.append({"type": "battle_end", "winner": "enemy"})
+                else:
+                    next_poke = self.enemy_trainer.first_available()
+                    if next_poke:
+                        all_events.append({"type": "send_out", "side": "enemy",
+                                           "trainer": self.enemy_trainer.name,
+                                           "species": next_poke.species})
+                    else:
+                        all_events.append({"type": "battle_end", "winner": "player"})
+                break
+
+        # End-of-turn effects (weather damage, status damage, Leftovers, etc.)
+        if self.result is None and not self.player_poke.is_fainted() and not self.enemy_poke.is_fainted():
+            eot_events = do_turn_end_effects(self.player_poke, self.enemy_poke, bs)
+            for ev in eot_events:
+                if ev.get("target") == self.player_poke.species:
+                    ev["side"] = "player"
+                else:
+                    ev["side"] = "enemy"
+            all_events.extend(eot_events)
+            # Check for faints from end-of-turn
+            for poke, side_name, trainer in [
+                (self.player_poke, "player", self.player_trainer),
+                (self.enemy_poke, "enemy", self.enemy_trainer),
+            ]:
+                if poke.is_fainted():
+                    if side_name == "player":
+                        next_p = trainer.first_available()
+                        if next_p:
+                            all_events.append({"type": "need_switch", "side": "player"})
+                        else:
+                            all_events.append({"type": "battle_end", "winner": "enemy"})
+                    else:
+                        next_p = trainer.first_available()
+                        if next_p:
+                            all_events.append({"type": "send_out", "side": "enemy",
+                                               "trainer": self.enemy_trainer.name,
+                                               "species": next_p.species})
+                        else:
+                            all_events.append({"type": "battle_end", "winner": "player"})
 
         self.anim_events = all_events
         self.anim_timer = 0
 
     def _switch_to(self, poke):
         self.player_poke = poke
+        poke.reset_battle_state()
         self.log.add(f"Go, {poke.species}!", C_GREEN)
+        # Apply switch-in effects (hazards, abilities)
+        sin_events = do_switch_in_effects(poke, 0, self.battle_state)
+        for ev in sin_events:
+            self._log_event(ev)
+        # Intimidate
+        if poke.ability == "Intimidate" and not self.enemy_poke.is_fainted():
+            actual = self.enemy_poke.change_stat("atk", -1)
+            if actual:
+                self.log.add(f"{self.enemy_poke.species}'s Attack fell! (Intimidate)", C_YELLOW)
+        if poke.is_fainted():
+            # Died from hazards
+            next_p = self.player_trainer.first_available()
+            if next_p:
+                self.phase = "switch"
+                self._build_switch_buttons()
+                return
+            else:
+                self.result = False
+                self.phase = "done"
+                self.log.add("You lost the battle...", C_RED)
+                self._build_done_button()
+                return
         self.phase = "choose_move"
         self._build_move_buttons()
 
     def _process_next_event(self):
         if not self.anim_events:
-            # Turn done, check state
             if self.result is not None:
                 self.phase = "done"
                 self._build_done_button()
@@ -406,13 +571,26 @@ class BattleScene(Scene):
                 self.log.add("It's super effective!", C_GREEN)
             else:
                 self.log.add("It's not very effective...", C_TEXT_DIM)
+        elif t == "critical_hit":
+            self.log.add("A critical hit!", C_GOLD)
         elif t == "damage":
             self.log.add(f"{ev['target']} took {ev['damage']} damage! ({ev['hp']}/{ev['max_hp']} HP)", C_RED)
         elif t == "faint":
             self.log.add(f"{ev['target']} fainted!", C_RED)
         elif t == "send_out":
+            old_enemy = self.enemy_poke
             self.enemy_poke = self.enemy_trainer.first_available()
-            self.log.add(f"{ev['trainer']} sends out {ev['species']}!", C_RED)
+            if self.enemy_poke:
+                self.enemy_poke.reset_battle_state()
+                self.log.add(f"{ev['trainer']} sends out {ev['species']}!", C_RED)
+                # Switch-in effects for new enemy
+                sin = do_switch_in_effects(self.enemy_poke, 1, self.battle_state)
+                for sev in sin:
+                    self._log_event(sev)
+                if self.enemy_poke.ability == "Intimidate" and not self.player_poke.is_fainted():
+                    actual = self.player_poke.change_stat("atk", -1)
+                    if actual:
+                        self.log.add(f"{self.player_poke.species}'s Attack fell! (Intimidate)", C_YELLOW)
         elif t == "need_switch":
             available = [(i, p) for i, p in enumerate(self.player_trainer.team) if not p.is_fainted()]
             if len(available) == 1:
@@ -432,6 +610,96 @@ class BattleScene(Scene):
                 self.log.add("You lost the battle...", C_RED)
         elif t == "fail":
             self.log.add(f"{ev['user']} tried to use {ev['move']}, but it failed!", C_TEXT_DIM)
+        # ── New event types ──
+        elif t == "status_inflict":
+            self.log.add(f"{ev['target']} was afflicted with {ev['status']}!", C_YELLOW)
+        elif t == "status_cure":
+            self.log.add(f"{ev['target']} was cured of {ev['status']}!", C_GREEN)
+        elif t == "status_immobile":
+            status_msgs = {
+                "sleep": f"{ev['target']} is fast asleep!",
+                "freeze": f"{ev['target']} is frozen solid!",
+                "paralysis": f"{ev['target']} is paralyzed! It can't move!",
+                "flinch": f"{ev['target']} flinched!",
+                "infatuation": f"{ev['target']} is immobilized by love!",
+            }
+            self.log.add(status_msgs.get(ev["status"], f"{ev['target']} can't move!"), C_YELLOW)
+        elif t == "status_damage":
+            self.log.add(f"{ev['target']} was hurt by {ev['status']}! ({ev['damage']} dmg)", C_RED)
+        elif t == "confusion_hit":
+            self.log.add(f"{ev['target']} hurt itself in confusion! ({ev['damage']} dmg)", C_YELLOW)
+        elif t == "stat_change":
+            direction = "rose" if ev["amount"] > 0 else "fell"
+            sharply = "sharply " if abs(ev["amount"]) >= 2 else ""
+            self.log.add(f"{ev['target']}'s {ev['stat']} {sharply}{direction}!", C_ACCENT)
+        elif t == "recoil":
+            self.log.add(f"{ev['target']} was hurt by recoil! ({ev['damage']} dmg)", C_RED)
+        elif t == "drain":
+            self.log.add(f"{ev['target']} restored {ev['amount']} HP!", C_GREEN)
+        elif t == "heal":
+            self.log.add(f"{ev['target']} restored HP! ({ev['hp']}/{ev['max_hp']})", C_GREEN)
+        elif t == "protect":
+            self.log.add(f"{ev['target']} protected itself!", C_GREEN)
+        elif t == "protected":
+            self.log.add(f"{ev['target']} protected itself!", C_GREEN)
+        elif t == "substitute":
+            self.log.add(f"{ev['target']} created a substitute!", C_ACCENT)
+        elif t == "weather":
+            self.log.add(f"The weather changed to {ev['weather']}!", C_ACCENT)
+        elif t == "weather_end":
+            self.log.add(f"The {ev['weather']} subsided!", C_TEXT_DIM)
+        elif t == "weather_damage":
+            self.log.add(f"{ev['target']} was buffeted by {ev['weather']}! ({ev['damage']} dmg)", C_RED)
+        elif t == "hazard_set":
+            self.log.add(f"{ev['hazard']} was set up!", C_ACCENT)
+        elif t == "hazard_damage":
+            self.log.add(f"{ev['target']} was hurt by {ev['hazard']}! ({ev['damage']} dmg)", C_RED)
+        elif t == "hazard_clear":
+            self.log.add(f"The hazards were cleared!", C_GREEN)
+        elif t == "screen_set":
+            self.log.add(f"{ev['screen']} was set up!", C_ACCENT)
+        elif t == "screen_end":
+            self.log.add(f"The {ev['screen']} wore off!", C_TEXT_DIM)
+        elif t == "tailwind":
+            self.log.add("Tailwind blew from behind!", C_ACCENT)
+        elif t == "tailwind_end":
+            self.log.add("The tailwind died down!", C_TEXT_DIM)
+        elif t == "leech_seed":
+            self.log.add(f"{ev['target']}'s health was sapped by Leech Seed! ({ev['damage']} dmg)", C_RED)
+        elif t == "curse_damage":
+            self.log.add(f"{ev['target']} was afflicted by the curse! ({ev['damage']} dmg)", C_RED)
+        elif t == "curse_ghost":
+            self.log.add(f"{ev['user']} cut its own HP to lay a curse on {ev['target']}!", C_RED)
+        elif t == "item_heal":
+            self.log.add(f"{ev['target']} restored HP with {ev['item']}! (+{ev['amount']})", C_GREEN)
+        elif t == "item_damage":
+            self.log.add(f"{ev['target']} was hurt by {ev['item']}! ({ev['damage']} dmg)", C_RED)
+        elif t == "ability_heal":
+            self.log.add(f"{ev['target']} healed with {ev['ability']}! (+{ev['amount']})", C_GREEN)
+        elif t == "ability_cure":
+            self.log.add(f"{ev['target']}'s {ev['ability']} cured its {ev['status']}!", C_GREEN)
+        elif t == "ability_stat":
+            self.log.add(f"{ev['target']}'s {ev['ability']} raised its {ev['stat']}!", C_ACCENT)
+        elif t == "ability_end":
+            self.log.add(f"{ev['target']}'s {ev['ability']} wore off!", C_TEXT_DIM)
+        elif t == "ability_immune":
+            self.log.add(f"{ev['target']}'s {ev['ability']} nullified the attack!", C_GREEN)
+        elif t == "ability_contact_damage":
+            self.log.add(f"{ev['target']} was hurt by {ev['ability']}! ({ev['damage']} dmg)", C_RED)
+        elif t == "ability_status":
+            self.log.add(f"{ev['target']} was afflicted by {ev['ability']}! ({ev['status']})", C_YELLOW)
+        elif t == "ability_announce":
+            self.log.add(f"{ev['pokemon']}'s {ev['ability']}!", C_YELLOW)
+        elif t == "field_set":
+            self.log.add(f"{ev['effect']} twisted the dimensions!", C_ACCENT)
+        elif t == "field_end":
+            self.log.add(f"{ev['effect']} wore off!", C_TEXT_DIM)
+        elif t == "haze":
+            self.log.add("All stat changes were reset!", C_ACCENT)
+        elif t == "belly_drum":
+            self.log.add(f"{ev['target']} cut its HP and maxed its Attack!", C_GOLD)
+        elif t == "nightmare_damage":
+            self.log.add(f"{ev['target']} was hurt by Nightmare! ({ev['damage']} dmg)", C_RED)
 
     def _build_done_button(self):
         label = "Victory! Continue..." if self.result else "Defeat... Continue..."
@@ -443,6 +711,10 @@ class BattleScene(Scene):
     def _finish(self):
         s = self.state
         is_champion_fight = (self.player_trainer is s.champion)
+
+        # Fully cure all league Pokemon after every battle
+        for member in s.league:
+            member.heal_all()
 
         if self.result:
             reward = 50 + s.challenger_position * 25
@@ -505,6 +777,15 @@ class BattleScene(Scene):
             draw_text(screen, self.engine,
                       f"ATK:{p.atk}  DEF:{p.defense}  SPA:{p.spa}  SPD:{p.spd}  SPE:{p.spe}",
                       40, 170, 12, C_TEXT_DIM)
+            # Status condition
+            if p.status1 != Status1.NONE:
+                status_colors = {
+                    Status1.BURNED: C_RED, Status1.POISONED: (160, 80, 200),
+                    Status1.BADLY_POISONED: (160, 80, 200), Status1.PARALYZED: C_YELLOW,
+                    Status1.ASLEEP: C_TEXT_DIM, Status1.FROZEN: (100, 200, 255),
+                }
+                sc = status_colors.get(p.status1, C_YELLOW)
+                draw_text(screen, self.engine, p.status1.name[:3], 40, 185, 14, sc)
 
         # Enemy Pokemon (right)
         if self.enemy_poke:
@@ -523,6 +804,26 @@ class BattleScene(Scene):
             draw_text(screen, self.engine,
                       f"ATK:{ep.atk}  DEF:{ep.defense}  SPA:{ep.spa}  SPD:{ep.spd}  SPE:{ep.spe}",
                       ex + 20, 170, 12, C_TEXT_DIM)
+            # Status condition
+            if ep.status1 != Status1.NONE:
+                status_colors = {
+                    Status1.BURNED: C_RED, Status1.POISONED: (160, 80, 200),
+                    Status1.BADLY_POISONED: (160, 80, 200), Status1.PARALYZED: C_YELLOW,
+                    Status1.ASLEEP: C_TEXT_DIM, Status1.FROZEN: (100, 200, 255),
+                }
+                sc = status_colors.get(ep.status1, C_YELLOW)
+                draw_text(screen, self.engine, ep.status1.name[:3], ex + 20, 185, 14, sc)
+
+        # Weather indicator
+        if self.battle_state.weather != Weather.NONE:
+            weather_labels = {
+                Weather.HARSH_SUNLIGHT: ("Harsh Sunlight", C_YELLOW),
+                Weather.RAIN: ("Rain", (100, 150, 255)),
+                Weather.SANDSTORM: ("Sandstorm", (200, 180, 120)),
+                Weather.HAILSTORM: ("Hailstorm", (180, 220, 255)),
+            }
+            wl, wc = weather_labels.get(self.battle_state.weather, ("???", C_TEXT_DIM))
+            draw_text(screen, self.engine, f"Weather: {wl}", SCREEN_W // 2, 38, 14, wc, anchor="midtop")
 
         # Team bars
         self._draw_team_bar(screen, self.player_trainer, 20, 220, "YOUR TEAM")
@@ -626,7 +927,7 @@ class ResultScene(Scene):
 # ─── Shop Scene ─────────────────────────────────────────────────────
 
 class ShopScene(Scene):
-    """Shop for upgrades. Sub-phases handle different actions."""
+    """Shop for upgrades — tier-based system."""
 
     def __init__(self, state):
         super().__init__()
@@ -637,25 +938,21 @@ class ShopScene(Scene):
         self.message = ""
         self.message_timer = 0
         self.message_color = C_TEXT
+        self.selected_member = None
+        self.selected_poke = None
         self._build_main()
 
     def _build_main(self):
         self.phase = "main"
         bx = SCREEN_W // 2 - 150
         self.buttons = [
-            Button(f"Level Up Pokemon  ($50/lv)", bx, 300, 300, 42,
-                   callback=lambda: self._start_action("level_up"),
+            Button("Upgrade League Member", bx, 300, 300, 42,
+                   callback=self._pick_member_start,
                    font_size=17, border_color=C_ACCENT),
-            Button(f"Teach Move  ($100)", bx, 350, 300, 42,
-                   callback=lambda: self._start_action("teach_move"),
-                   font_size=17, border_color=C_ACCENT),
-            Button(f"Add Pokemon  ($200)", bx, 400, 300, 42,
-                   callback=lambda: self._start_action("add_pokemon"),
-                   font_size=17, border_color=C_ACCENT),
-            Button("View Teams", bx, 460, 300, 42,
+            Button("View Teams", bx, 360, 300, 42,
                    callback=lambda: self._start_action("view_teams"),
                    font_size=17),
-            Button("Back", bx, 530, 300, 42,
+            Button("Back", bx, 430, 300, 42,
                    callback=self._back, font_size=17,
                    color=(60, 40, 40), hover_color=(80, 50, 50),
                    border_color=C_RED),
@@ -663,34 +960,20 @@ class ShopScene(Scene):
         self.sub_buttons = []
 
     def _start_action(self, action):
-        if action == "level_up":
-            self.phase = "pick_member_lu"
-            self._build_member_buttons("pick_member_lu")
-        elif action == "teach_move":
-            if self.state.money < 100:
-                self._show_message("Not enough money! Need $100.", C_RED)
-                return
-            self.phase = "pick_member_tm"
-            self._build_member_buttons("pick_member_tm")
-        elif action == "add_pokemon":
-            if self.state.money < 200:
-                self._show_message("Not enough money! Need $200.", C_RED)
-                return
-            self.phase = "pick_member_ap"
-            self._build_member_buttons("pick_member_ap")
-        elif action == "view_teams":
+        if action == "view_teams":
             self.phase = "view_teams"
             self.sub_buttons = [
                 Button("Back", SCREEN_W // 2 - 60, SCREEN_H - 60, 120, 40,
                        callback=self._build_main, font_size=16, border_color=C_ACCENT),
             ]
 
-    def _build_member_buttons(self, next_phase):
+    def _pick_member_start(self):
+        self.phase = "pick_member"
         self.sub_buttons = []
         for i, member in enumerate(self.state.league):
-            btn = Button(f"{member.display_name()} ({len(member.team)} Pokemon)",
-                         SCREEN_W // 2 - 180, 200 + i * 48, 360, 40,
-                         callback=lambda m=member, ph=next_phase: self._pick_member(m, ph),
+            label = f"{member.display_name()} ({len(member.team)} Pokemon)"
+            btn = Button(label, SCREEN_W // 2 - 180, 200 + i * 48, 360, 40,
+                         callback=lambda m=member: self._pick_member(m),
                          font_size=16, border_color=C_ACCENT)
             self.sub_buttons.append(btn)
         self.sub_buttons.append(
@@ -698,216 +981,161 @@ class ShopScene(Scene):
                    callback=self._build_main, font_size=14, border_color=C_RED)
         )
 
-    def _pick_member(self, member, phase):
+    def _pick_member(self, member):
         self.selected_member = member
-        if phase == "pick_member_lu":
-            self.phase = "pick_poke_lu"
-            self._build_pokemon_buttons(member, "lu")
-        elif phase == "pick_member_tm":
-            self.phase = "pick_poke_tm"
-            self._build_pokemon_buttons(member, "tm")
-        elif phase == "pick_member_ap":
-            self.phase = "pick_species"
-            self._build_species_buttons(member)
+        is_champion = (member is self.state.champion)
+        if is_champion:
+            # Champion can only level up
+            self.phase = "champion_actions"
+            self._build_champion_actions(member)
+        else:
+            # Non-champion gets tier upgrades
+            self.phase = "member_actions"
+            self._build_member_actions(member)
 
-    def _build_pokemon_buttons(self, member, action):
+    def _build_champion_actions(self, member):
+        self.sub_buttons = []
+        for i, p in enumerate(member.team):
+            cost = 50
+            label = f"Level Up {p.species} Lv.{p.level} → {p.level + 1}  (${cost})"
+            btn = Button(label, SCREEN_W // 2 - 220, 220 + i * 48, 440, 40,
+                         callback=lambda poke=p: self._do_champion_levelup(poke),
+                         font_size=15, border_color=C_GREEN)
+            self.sub_buttons.append(btn)
+        self.sub_buttons.append(
+            Button("Cancel", SCREEN_W // 2 - 60, 220 + len(member.team) * 48 + 10, 120, 36,
+                   callback=self._build_main, font_size=14, border_color=C_RED)
+        )
+
+    def _do_champion_levelup(self, poke):
+        if self.state.money < 50:
+            self._show_message("Not enough money! Need $50.", C_RED)
+            return
+        poke.level_up(1)
+        self.state.money -= 50
+        self._show_message(f"{poke.species} leveled up to Lv.{poke.level}! (-$50)", C_GREEN)
+        self._build_champion_actions(self.selected_member)
+
+    def _build_member_actions(self, member):
+        self.sub_buttons = []
+        bx = SCREEN_W // 2 - 150
+        # Upgrade Pokemon
+        next_species = member.get_next_tier_pokemon()
+        if next_species:
+            pdata = POKEMON_DB[next_species]
+            types_str = "/".join(pdata["types"])
+            pre_evo = EVOLVES_FROM.get(next_species)
+            action_desc = f"evolves {pre_evo}" if pre_evo and any(p.species == pre_evo for p in member.team) else "adds to team"
+            label = f"Upgrade Pokemon: {next_species} [{types_str}] ({action_desc})  ($200)"
+            self.sub_buttons.append(
+                Button(label, bx - 70, 220, 440, 42,
+                       callback=lambda: self._do_upgrade_pokemon(member, next_species),
+                       font_size=15, border_color=C_ACCENT)
+            )
+        else:
+            self.sub_buttons.append(
+                Button("Pokemon: MAX TIER", bx - 70, 220, 440, 42,
+                       font_size=15, border_color=C_TEXT_DIM,
+                       color=(40, 40, 40), hover_color=(40, 40, 40))
+            )
+
+        # Upgrade Move — pick a Pokemon first
+        self.sub_buttons.append(
+            Button("Upgrade Move  ($100)", bx - 70, 270, 440, 42,
+                   callback=lambda: self._pick_poke_for_move(member),
+                   font_size=15, border_color=C_ACCENT)
+        )
+
+        self.sub_buttons.append(
+            Button("Cancel", SCREEN_W // 2 - 60, 330, 120, 36,
+                   callback=self._build_main, font_size=14, border_color=C_RED)
+        )
+
+    def _do_upgrade_pokemon(self, member, species):
+        if self.state.money < 200:
+            self._show_message("Not enough money! Need $200.", C_RED)
+            return
+        avg_level = sum(p.level for p in member.team) // len(member.team) if member.team else 10
+        new_level = max(5, avg_level)
+        member.add_tier_pokemon(species, new_level)
+        self.state.money -= 200
+        self._show_message(f"{species} Lv.{new_level} joined {member.display_name()}'s team! (-$200)", C_GREEN)
+        self._build_member_actions(member)
+
+    def _pick_poke_for_move(self, member):
+        if self.state.money < 100:
+            self._show_message("Not enough money! Need $100.", C_RED)
+            return
+        self.phase = "pick_poke_move"
         self.sub_buttons = []
         for i, p in enumerate(member.team):
             label = f"{p.species} Lv.{p.level}  ({', '.join(p.moves)})"
-            btn = Button(label, SCREEN_W // 2 - 220, 200 + i * 48, 440, 40,
-                         callback=lambda poke=p, act=action: self._pick_pokemon(poke, act),
+            btn = Button(label, SCREEN_W // 2 - 220, 220 + i * 48, 440, 40,
+                         callback=lambda poke=p: self._show_move_upgrades(poke),
                          font_size=15, border_color=C_ACCENT)
             self.sub_buttons.append(btn)
         self.sub_buttons.append(
-            Button("Cancel", SCREEN_W // 2 - 60, 200 + len(member.team) * 48 + 10, 120, 36,
-                   callback=self._build_main, font_size=14, border_color=C_RED)
+            Button("Cancel", SCREEN_W // 2 - 60, 220 + len(member.team) * 48 + 10, 120, 36,
+                   callback=lambda: self._build_member_actions(member), font_size=14, border_color=C_RED)
         )
 
-    def _pick_pokemon(self, poke, action):
+    def _show_move_upgrades(self, poke):
         self.selected_poke = poke
-        if action == "lu":
-            self.phase = "level_up_amount"
-            self._build_levelup_buttons(poke)
-        elif action == "tm":
-            self._build_move_buttons(poke)
-
-    def _build_levelup_buttons(self, poke):
-        cost_per = 50
-        max_aff = self.state.money // cost_per
-        if max_aff == 0:
-            self._show_message("Not enough money!", C_RED)
-            self._build_main()
-            return
+        self.phase = "pick_move_upgrade"
         self.sub_buttons = []
-        amounts = [1, 2, 3, 5, 10]
-        for i, amt in enumerate(amounts):
-            if amt > max_aff:
-                continue
-            cost = amt * cost_per
-            btn = Button(f"+{amt} Level{'s' if amt > 1 else ''}  (${cost})",
-                         SCREEN_W // 2 - 120, 250 + i * 48, 240, 40,
-                         callback=lambda a=amt: self._do_levelup(a),
-                         font_size=16, border_color=C_GREEN)
-            self.sub_buttons.append(btn)
-        self.sub_buttons.append(
-            Button("Cancel", SCREEN_W // 2 - 60, 250 + len(self.sub_buttons) * 48 + 10, 120, 36,
-                   callback=self._build_main, font_size=14, border_color=C_RED)
-        )
+        row = 0
 
-    def _do_levelup(self, levels):
-        cost = levels * 50
-        self.selected_poke.level_up(levels)
-        self.state.money -= cost
-        self._show_message(
-            f"{self.selected_poke.species} leveled up to Lv.{self.selected_poke.level}! (-${cost})",
-            C_GREEN,
-        )
-        self._build_main()
-
-    def _build_move_buttons(self, poke):
-        available = [m for m in poke.learnable_moves if m not in poke.moves]
-        if not available:
-            self._show_message(f"{poke.species} already knows all moves!", C_YELLOW)
-            self._build_main()
-            return
-        self.phase = "pick_move"
-        self.sub_buttons = []
-        for i, move_name in enumerate(available):
-            md = MOVES_DB[move_name]
-            mtype = md["type"]
-            cat = "PHY" if md["category"] == "physical" else "SPE"
-            label = f"{move_name}  ({mtype} {cat} P:{md['power']} A:{md['accuracy']}%)"
+        # Existing type upgrades
+        for mtype, cur_tier, max_tier in poke.get_available_move_upgrades():
+            tier_list = poke.move_tiers[mtype]
+            cur_move = tier_list[cur_tier - 1]
+            next_move = tier_list[cur_tier]
+            label = f"{mtype}: {cur_move} → {next_move}  ($100)"
             mcolor = type_color(mtype)
             r, g, b = mcolor
-            btn = Button(label, SCREEN_W // 2 - 220, 200 + i * 44, 440, 38,
-                         callback=lambda mn=move_name: self._teach_move(mn),
+            btn = Button(label, SCREEN_W // 2 - 220, 220 + row * 44, 440, 38,
+                         callback=lambda mt=mtype: self._do_move_upgrade(poke, mt),
                          font_size=15, color=(r // 5 + 20, g // 5 + 20, b // 5 + 20),
                          hover_color=(r // 4 + 30, g // 4 + 30, b // 4 + 30),
                          border_color=mcolor)
             self.sub_buttons.append(btn)
-        self.sub_buttons.append(
-            Button("Cancel", SCREEN_W // 2 - 60, 200 + len(available) * 44 + 10, 120, 36,
-                   callback=self._build_main, font_size=14, border_color=C_RED)
-        )
+            row += 1
 
-    def _teach_move(self, move_name):
-        poke = self.selected_poke
-        if len(poke.moves) >= 4:
-            self.phase = "replace_move"
-            self.new_move = move_name
-            self.sub_buttons = []
-            for i, m in enumerate(poke.moves):
-                md = MOVES_DB[m]
-                label = f"Replace: {m} ({md['type']} P:{md['power']})"
-                btn = Button(label, SCREEN_W // 2 - 180, 250 + i * 48, 360, 40,
-                             callback=lambda idx=i: self._replace_move(idx),
-                             font_size=15, border_color=C_YELLOW)
-                self.sub_buttons.append(btn)
-            self.sub_buttons.append(
-                Button("Cancel", SCREEN_W // 2 - 60, 250 + len(poke.moves) * 48 + 10, 120, 36,
-                       callback=self._build_main, font_size=14, border_color=C_RED)
-            )
-        else:
-            poke.moves.append(move_name)
-            self.state.money -= 100
-            self._show_message(f"{poke.species} learned {move_name}! (-$100)", C_GREEN)
-            self._build_main()
-
-    def _replace_move(self, idx):
-        poke = self.selected_poke
-        old_move = poke.moves[idx]
-        poke.moves[idx] = self.new_move
-        self.state.money -= 100
-        self._show_message(f"{poke.species} forgot {old_move}, learned {self.new_move}! (-$100)", C_GREEN)
-        self._build_main()
-
-    def _build_species_buttons(self, member):
-        current = {p.species for p in member.team}
-        available = sorted([s for s in POKEMON_DB if s not in current])
-        self.species_list = available
-        self.species_page = 0
-        self._draw_species_page()
-
-    def _draw_species_page(self):
-        self.phase = "pick_species"
-        page = self.species_page
-        per_page = 10
-        start = page * per_page
-        end = min(start + per_page, len(self.species_list))
-        total_pages = (len(self.species_list) - 1) // per_page + 1
-
-        self.sub_buttons = []
-        for i in range(start, end):
-            species = self.species_list[i]
-            pdata = POKEMON_DB[species]
-            types_str = "/".join(pdata["types"])
-            r, g, b = type_color(pdata["types"][0])
-            btn = Button(f"{species}  [{types_str}]",
-                         SCREEN_W // 2 - 180, 180 + (i - start) * 40, 360, 34,
-                         callback=lambda s=species: self._add_pokemon(s),
+        # New types to learn
+        for mtype in poke.get_learnable_new_types():
+            tier_list = poke.move_tiers[mtype]
+            first_move = tier_list[0]
+            label = f"Learn {mtype}: {first_move}  ($100)"
+            mcolor = type_color(mtype)
+            r, g, b = mcolor
+            btn = Button(label, SCREEN_W // 2 - 220, 220 + row * 44, 440, 38,
+                         callback=lambda mt=mtype: self._do_move_upgrade(poke, mt),
                          font_size=15, color=(r // 5 + 20, g // 5 + 20, b // 5 + 20),
                          hover_color=(r // 4 + 30, g // 4 + 30, b // 4 + 30),
-                         border_color=type_color(pdata["types"][0]))
+                         border_color=mcolor)
             self.sub_buttons.append(btn)
+            row += 1
 
-        nav_y = 180 + (end - start) * 40 + 10
-        if page > 0:
-            self.sub_buttons.append(
-                Button("< Prev", SCREEN_W // 2 - 180, nav_y, 100, 34,
-                       callback=self._prev_species_page, font_size=14, border_color=C_ACCENT)
-            )
-        if end < len(self.species_list):
-            self.sub_buttons.append(
-                Button("Next >", SCREEN_W // 2 + 80, nav_y, 100, 34,
-                       callback=self._next_species_page, font_size=14, border_color=C_ACCENT)
-            )
+        if row == 0:
+            self._show_message(f"{poke.species} has all moves maxed!", C_YELLOW)
+            self._build_member_actions(self.selected_member)
+            return
+
         self.sub_buttons.append(
-            Button("Cancel", SCREEN_W // 2 - 60, nav_y + 44, 120, 34,
-                   callback=self._build_main, font_size=14, border_color=C_RED)
+            Button("Cancel", SCREEN_W // 2 - 60, 220 + row * 44 + 10, 120, 36,
+                   callback=lambda: self._build_member_actions(self.selected_member),
+                   font_size=14, border_color=C_RED)
         )
 
-    def _prev_species_page(self):
-        self.species_page = max(0, self.species_page - 1)
-        self._draw_species_page()
-
-    def _next_species_page(self):
-        self.species_page += 1
-        self._draw_species_page()
-
-    def _add_pokemon(self, species):
-        member = self.selected_member
-        avg_level = sum(p.level for p in member.team) // len(member.team) if member.team else 10
-        new_level = max(5, avg_level - 2)
-        pdata = POKEMON_DB[species]
-        new_poke = Pokemon(species, new_level, pdata["learnable_moves"][:2])
-
-        if len(member.team) >= 6:
-            self.new_poke = new_poke
-            self.phase = "replace_poke"
-            self.sub_buttons = []
-            for i, p in enumerate(member.team):
-                btn = Button(f"Replace: {p.species} Lv.{p.level}",
-                             SCREEN_W // 2 - 160, 250 + i * 48, 320, 40,
-                             callback=lambda idx=i: self._do_replace_poke(idx),
-                             font_size=15, border_color=C_YELLOW)
-                self.sub_buttons.append(btn)
-            self.sub_buttons.append(
-                Button("Cancel", SCREEN_W // 2 - 60, 250 + 6 * 48 + 10, 120, 36,
-                       callback=self._build_main, font_size=14, border_color=C_RED)
-            )
-        else:
-            member.team.append(new_poke)
-            self.state.money -= 200
-            self._show_message(f"{species} Lv.{new_level} joined the team! (-$200)", C_GREEN)
-            self._build_main()
-
-    def _do_replace_poke(self, idx):
-        member = self.selected_member
-        old = member.team[idx]
-        member.team[idx] = self.new_poke
-        self.state.money -= 200
-        self._show_message(f"{old.species} replaced by {self.new_poke.species}! (-$200)", C_GREEN)
-        self._build_main()
+    def _do_move_upgrade(self, poke, move_type):
+        if self.state.money < 100:
+            self._show_message("Not enough money! Need $100.", C_RED)
+            return
+        new_move = poke.upgrade_move_type(move_type)
+        if new_move:
+            self.state.money -= 100
+            self._show_message(f"{poke.species} learned {new_move}! (-$100)", C_GREEN)
+        self._build_member_actions(self.selected_member)
 
     def _show_message(self, text, color):
         self.message = text
@@ -935,18 +1163,15 @@ class ShopScene(Scene):
     def draw(self, screen):
         screen.fill(C_BG)
 
-        # Header
         draw_text(screen, self.engine, "POKEMON LEAGUE SHOP",
                   SCREEN_W // 2, 30, 32, C_GOLD, anchor="midtop")
         draw_text(screen, self.engine, f"${self.state.money}",
                   SCREEN_W // 2, 70, 24, C_YELLOW, anchor="midtop")
 
-        # Message
         if self.message:
             draw_text(screen, self.engine, self.message,
                       SCREEN_W // 2, 110, 18, self.message_color, anchor="midtop")
 
-        # Phase-specific info
         if self.phase == "main":
             for btn in self.buttons:
                 btn.draw(screen, self.engine)
@@ -967,48 +1192,33 @@ class ShopScene(Scene):
             for btn in self.sub_buttons:
                 btn.draw(screen, self.engine)
 
-        elif self.phase == "level_up_amount":
+        elif self.phase == "champion_actions":
             draw_text(screen, self.engine,
-                      f"Level up {self.selected_poke.species} (currently Lv.{self.selected_poke.level})",
-                      SCREEN_W // 2, 200, 20, C_ACCENT, anchor="midtop")
+                      f"{self.selected_member.display_name()} — Level Up (+1 Lv, $50 each)",
+                      SCREEN_W // 2, 170, 20, C_ACCENT, anchor="midtop")
             for btn in self.sub_buttons:
                 btn.draw(screen, self.engine)
 
-        elif self.phase == "replace_move":
+        elif self.phase == "member_actions":
             draw_text(screen, self.engine,
-                      f"Replace which move with {self.new_move}?",
-                      SCREEN_W // 2, 200, 20, C_YELLOW, anchor="midtop")
+                      f"Upgrades for {self.selected_member.display_name()}:",
+                      SCREEN_W // 2, 180, 20, C_ACCENT, anchor="midtop")
             for btn in self.sub_buttons:
                 btn.draw(screen, self.engine)
 
-        elif self.phase == "replace_poke":
-            draw_text(screen, self.engine,
-                      f"Team is full. Replace which Pokemon?",
-                      SCREEN_W // 2, 200, 20, C_YELLOW, anchor="midtop")
+        elif self.phase in ("pick_poke_move", "pick_move_upgrade"):
+            header = f"Upgrade move for {self.selected_member.display_name()}:"
+            if self.phase == "pick_move_upgrade":
+                header = f"Pick upgrade for {self.selected_poke.species}:  ($100)"
+            draw_text(screen, self.engine, header,
+                      SCREEN_W // 2, 180, 20, C_ACCENT, anchor="midtop")
             for btn in self.sub_buttons:
                 btn.draw(screen, self.engine)
 
         else:
-            # Generic sub-button phases
-            if self.phase.startswith("pick_member"):
+            if self.phase == "pick_member":
                 draw_text(screen, self.engine, "Choose a League member:",
                           SCREEN_W // 2, 160, 20, C_ACCENT, anchor="midtop")
-            elif self.phase.startswith("pick_poke"):
-                draw_text(screen, self.engine,
-                          f"Choose a Pokemon from {self.selected_member.display_name()}:",
-                          SCREEN_W // 2, 160, 20, C_ACCENT, anchor="midtop")
-            elif self.phase == "pick_move":
-                draw_text(screen, self.engine,
-                          f"Teach which move to {self.selected_poke.species}?  ($100)",
-                          SCREEN_W // 2, 160, 20, C_ACCENT, anchor="midtop")
-            elif self.phase == "pick_species":
-                page = self.species_page
-                per_page = 10
-                total_pages = (len(self.species_list) - 1) // per_page + 1
-                draw_text(screen, self.engine,
-                          f"Add a Pokemon to {self.selected_member.display_name()}'s team  ($200)  Page {page+1}/{total_pages}",
-                          SCREEN_W // 2, 145, 18, C_ACCENT, anchor="midtop")
-
             for btn in self.sub_buttons:
                 btn.draw(screen, self.engine)
 
