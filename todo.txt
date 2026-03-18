@@ -1,20 +1,18 @@
-- implement all gen 1 pokemon, then gym leaders starters rework
+-trainer sprites format fix
 
-- sprites for trainers
-
-- better HUDs
-
-- more money (everytime you beat a pokemon)
+- money everytime you beat a pokemon
 
 - in the upgrade shop for each trainer option to give +5 lvl to each pkmn in the team
 
 - implement other gens
 
-- lots of new options for challengers (challenger_pokemon_tiers rework to include all pokemons), better scalability (move tiers proportionnal to pkmn lvl, random weighted levels so not just better everytime instead generally better over time but can sometimes be worse,  etc)
+- lots of new options for challengers (challenger_pokemon_tiers rework to include all pokemons), better scalability (move tiers proportionnal to pkmn lvl, start at Lvl1, random weighted levels so not just better everytime instead generally better over time but can sometimes be worse,  etc)
 
 - sprites for moves
 
 - french translation
+
+- implement all gen 1 pokemon
 
 
 
@@ -22,3 +20,6 @@
 - map + playable character (central hub + teleporters to other gyms to upgrade their leaders)
 - gym upgrades
 - mega evolutions
+- other ways to get money than beating challengers
+- améliorer boucle de gameplay, peut-être se concentrer indépendemment sur chaque dresseur et pas sur les 18 en même temps.
+- save export/import

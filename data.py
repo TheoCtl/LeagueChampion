@@ -537,6 +537,88 @@ MOVES_DB = {
     "Twister": {"type": "Dragon", "category": "special", "power": 40, "accuracy": 100},
     # ── Auto-added ──
     "Hurricane": {"type": "Flying", "category": "special", "power": 110, "accuracy": 100},
+    # ── Auto-added ──
+    "Assurance": {"type": "Dark", "category": "physical", "power": 60, "accuracy": 100},
+    # ── Auto-added ──
+    "Double-Edge": {"type": "Normal", "category": "physical", "power": 120, "accuracy": 100},
+    # ── Auto-added ──
+    "Peck": {"type": "Flying", "category": "physical", "power": 35, "accuracy": 100},
+    # ── Auto-added ──
+    "Fury Attack": {"type": "Normal", "category": "physical", "power": 15, "accuracy": 85},
+    # ── Auto-added ──
+    "Drill Peck": {"type": "Flying", "category": "physical", "power": 80, "accuracy": 100},
+    # ── Auto-added ──
+    "Pluck": {"type": "Flying", "category": "physical", "power": 60, "accuracy": 100},
+    # ── Auto-added ──
+    "Wrap": {"type": "Normal", "category": "physical", "power": 15, "accuracy": 90},
+    # ── Auto-added ──
+    "Acid": {"type": "Poison", "category": "special", "power": 40, "accuracy": 100},
+    # ── Auto-added ──
+    "Acid Spray": {"type": "Poison", "category": "special", "power": 40, "accuracy": 100},
+    # ── Auto-added ──
+    "Belch": {"type": "Poison", "category": "special", "power": 120, "accuracy": 90},
+    # ── Auto-added ──
+    "Gunk Shot": {"type": "Poison", "category": "physical", "power": 120, "accuracy": 80},
+    # ── Auto-added ──
+    "Ice Fang": {"type": "Ice", "category": "physical", "power": 65, "accuracy": 95},
+    # ── Auto-added ──
+    "Thunder Fang": {"type": "Electric", "category": "physical", "power": 65, "accuracy": 95},
+    # ── Auto-added ──
+    "Nuzzle": {"type": "Electric", "category": "physical", "power": 20, "accuracy": 100},
+    # ── Auto-added ──
+    "Feint": {"type": "Normal", "category": "physical", "power": 30, "accuracy": 100},
+    # ── Auto-added ──
+    "Discharge": {"type": "Electric", "category": "special", "power": 80, "accuracy": 100},
+    # ── Auto-added ──
+    "Thunder Punch": {"type": "Electric", "category": "physical", "power": 75, "accuracy": 100},
+    # ── Auto-added ──
+    "Rollout": {"type": "Rock", "category": "physical", "power": 30, "accuracy": 90},
+    # ── Auto-added ──
+    "Fury Cutter": {"type": "Bug", "category": "physical", "power": 40, "accuracy": 95},
+    # ── Auto-added ──
+    "Bulldoze": {"type": "Ground", "category": "physical", "power": 60, "accuracy": 100},
+    # ── Auto-added ──
+    "Swift": {"type": "Normal", "category": "special", "power": 60, "accuracy": 0},
+    # ── Auto-added ──
+    "Fury Swipes": {"type": "Normal", "category": "physical", "power": 18, "accuracy": 80},
+    # ── Auto-added ──
+    "Crush Claw": {"type": "Normal", "category": "physical", "power": 75, "accuracy": 95},
+    # ── Auto-added ──
+    "Sand Tomb": {"type": "Ground", "category": "physical", "power": 35, "accuracy": 85},
+    # ── Auto-added ──
+    "Double Kick": {"type": "Fighting", "category": "physical", "power": 30, "accuracy": 100},
+    # ── Auto-added ──
+    "Sludge WaveBDSP": {"type": "Poison", "category": "special", "power": 95, "accuracy": 100},
+    # ── Auto-added ──
+    "Horn Attack": {"type": "Normal", "category": "physical", "power": 65, "accuracy": 100},
+    # ── Auto-added ──
+    "Megahorn": {"type": "Bug", "category": "physical", "power": 120, "accuracy": 85},
+    # ── Auto-added ──
+    "Disarming Voice": {"type": "Fairy", "category": "special", "power": 40, "accuracy": 0},
+    # ── Auto-added ──
+    "Pound": {"type": "Normal", "category": "physical", "power": 40, "accuracy": 100},
+    # ── Auto-added ──
+    "Stored Power": {"type": "Psychic", "category": "special", "power": 20, "accuracy": 100},
+    # ── Auto-added ──
+    "Meteor Mash": {"type": "Steel", "category": "physical", "power": 90, "accuracy": 90},
+    # ── Auto-added ──
+    "Incinerate": {"type": "Fire", "category": "special", "power": 60, "accuracy": 100},
+    # ── Auto-added ──
+    "Extrasensory": {"type": "Psychic", "category": "special", "power": 80, "accuracy": 100},
+    # ── Auto-added ──
+    "Echoed Voice": {"type": "Normal", "category": "special", "power": 40, "accuracy": 100},
+    # ── Auto-added ──
+    "Covet": {"type": "Normal", "category": "physical", "power": 60, "accuracy": 100},
+    # ── Auto-added ──
+    "Round": {"type": "Normal", "category": "special", "power": 60, "accuracy": 100},
+    # ── Auto-added ──
+    "Hyper Voice": {"type": "Normal", "category": "special", "power": 90, "accuracy": 100},
+    # ── Auto-added ──
+    "Absorb": {"type": "Grass", "category": "special", "power": 20, "accuracy": 100},
+    # ── Auto-added ──
+    "Poison Fang": {"type": "Poison", "category": "physical", "power": 50, "accuracy": 100},
+    # ── Auto-added ──
+    "Leech Life": {"type": "Bug", "category": "physical", "power": 80, "accuracy": 100},
 }
 
 
@@ -600,6 +682,20 @@ POKEMON_DB = {
         "abilities": ["Flame Body"],
         "move_tiers": {"Fire": ["Ember", "Flamethrower", "Fire Blast"], "Psychic": ["Psychic"], "Electric": ["Thunderbolt"]},
     },
+    "Vulpix": {
+        "types": ["Fire"],
+        "stats": {"hp": 38, "atk": 41, "def": 40, "spa": 50, "spd": 65, "spe": 65},
+        "abilities": ["Flash Fire", "Snow Cloak", "Drought", "Snow Warning"],
+        "move_tiers": {"Fire": ["Fire Spin", "Ember", "Incinerate", "Flamethrower", "Inferno", "Fire Blast"], "Normal": ["Quick Attack"], "Psychic": ["Extrasensory"]},
+    },
+    "Ninetales": {
+        "types": ["Fire"],
+        "stats": {"hp": 73, "atk": 76, "def": 75, "spa": 81, "spd": 100, "spe": 100},
+        "abilities": ["Flash Fire", "Snow Cloak", "Drought", "Snow Warning"],
+        "move_tiers": {"Fire": ["Fire Spin", "Ember", "Incinerate", "Flamethrower", "Inferno", "Fire Blast"], "Normal": ["Quick Attack"], "Psychic": ["Extrasensory"]},
+    },
+
+
     # ══════════ Water ══════════
     "Squirtle": {
         "types": ["Water"],
@@ -685,15 +781,15 @@ POKEMON_DB = {
     # ══════════ Electric ══════════
     "Pikachu": {
         "types": ["Electric"],
-        "stats": {"hp": 35, "atk": 55, "def": 40, "spa": 50, "spd": 50, "spe": 90},
+        "stats": {"hp": 35, "atk": 55, "def": 30, "spa": 50, "spd": 40, "spe": 90},
         "abilities": ["Static", "Lightning Rod"],
-        "move_tiers": {"Electric": ["Thunder Shock", "Thunderbolt", "Thunder"], "Normal": ["Quick Attack", "Slash"]},
+        "move_tiers": {"Electric": ["Nuzzle", "Thunder Shock", "Spark", "Discharge", "Thunderbolt", "Thunder"], "Normal": ["Feint", "Quick Attack"], "Steel": ["Iron Tail"]},
     },
     "Raichu": {
         "types": ["Electric"],
-        "stats": {"hp": 60, "atk": 90, "def": 55, "spa": 90, "spd": 80, "spe": 110},
+        "stats": {"hp": 60, "atk": 90, "def": 55, "spa": 90, "spd": 80, "spe": 100},
         "abilities": ["Static", "Lightning Rod"],
-        "move_tiers": {"Electric": ["Thunder Shock", "Thunderbolt", "Thunder"], "Normal": ["Quick Attack", "Body Slam"], "Fighting": ["Brick Break"]},
+        "move_tiers": {"Electric": ["Nuzzle", "Thunder Shock", "Spark", "Thunder Punch", "Discharge", "Thunderbolt", "Thunder"], "Normal": ["Feint", "Quick Attack"], "Steel": ["Iron Tail"]},
     },
     "Jolteon": {
         "types": ["Electric"],
@@ -764,18 +860,88 @@ POKEMON_DB = {
         "abilities": ["Inner Focus"],
         "move_tiers": {"Poison": ["Cross Poison", "Sludge Bomb"], "Flying": ["Air Slash", "Brave Bird"], "Dark": ["Bite", "Crunch"]},
     },
+    "Ekans": {
+        "types": ["Poison"],
+        "stats": {"hp": 35, "atk": 60, "def": 44, "spa": 40, "spd": 54, "spe": 55},
+        "abilities": ["Intimidate", "Shed Skin"],
+        "move_tiers": {"Normal": ["Wrap"], "Poison": ["Poison Sting", "Acid Spray", "Sludge Bomb", "Gunk Shot"], "Dark": ["Bite"]},
+    },
+    "Arbok": {
+        "types": ["Poison"],
+        "stats": {"hp": 60, "atk": 85, "def": 69, "spa": 65, "spd": 79, "spe": 80},
+        "abilities": ["Intimidate", "Shed Skin"],
+        "move_tiers": {"Normal": ["Wrap"], "Poison": ["Poison Sting", "Acid Spray", "Sludge Bomb", "Gunk Shot"], "Dark": ["Bite", "Crunch"], "Fire": ["Fire Fang"], "Ice": ["Ice Fang"], "Electric": ["Thunder Fang"]},
+    },
+    "Nidoran♀": {
+        "types": ["Poison"],
+        "stats": {"hp": 55, "atk": 47, "def": 52, "spa": 40, "spd": 40, "spe": 41},
+        "abilities": ["Poison Point", "Hustle"],
+        "move_tiers": {"Poison": ["Poison Sting"], "Normal": ["Fury Swipes", "Scratch"], "Fighting": ["Double Kick"], "Dark": ["Bite", "Crunch"], "Ground": ["Earth Power"]},
+    },
+    "Nidorina": {
+        "types": ["Poison"],
+        "stats": {"hp": 70, "atk": 62, "def": 67, "spa": 55, "spd": 55, "spe": 56},
+        "abilities": ["Poison Point", "Hustle"],
+        "move_tiers": {"Poison": ["Poison Sting"], "Normal": ["Fury Swipes", "Scratch"], "Fighting": ["Double Kick"], "Dark": ["Bite", "Crunch"], "Ground": ["Earth Power"]},
+    },
+    "Nidoqueen": {
+        "types": ["Poison", "Ground"],
+        "stats": {"hp": 90, "atk": 82, "def": 87, "spa": 75, "spd": 85, "spe": 76},
+        "abilities": ["Poison Point"],
+        "move_tiers": {"Fighting": ["Double Kick", "Superpower"], "Poison": ["Poison Sting", "Sludge WaveBDSP"], "Normal": ["Fury Swipes", "Scratch"], "Dark": ["Bite", "Crunch"], "Ground": ["Earth Power"]},
+    },
+    "Nidoran♂": {
+        "types": ["Poison"],
+        "stats": {"hp": 46, "atk": 57, "def": 40, "spa": 40, "spd": 40, "spe": 50},
+        "abilities": ["Poison Point", "Hustle"],
+        "move_tiers": {"Poison": ["Poison Sting", "Poison Jab"], "Flying": ["Peck"], "Normal": ["Fury Attack", "Horn Attack"], "Fighting": ["Double Kick"], "Ground": ["Earth Power"]},
+    },
+    "Nidorino": {
+        "types": ["Poison"],
+        "stats": {"hp": 61, "atk": 72, "def": 57, "spa": 55, "spd": 55, "spe": 65},
+        "abilities": ["Poison Point", "Hustle"],
+        "move_tiers": {"Poison": ["Poison Sting", "Poison Jab"], "Flying": ["Peck"], "Normal": ["Fury Attack", "Horn Attack"], "Fighting": ["Double Kick"], "Ground": ["Earth Power"]},
+    },
+    "Nidoking": {
+        "types": ["Poison", "Ground"],
+        "stats": {"hp": 81, "atk": 92, "def": 77, "spa": 85, "spd": 75, "spe": 85},
+        "abilities": ["Poison Point"],
+        "move_tiers": {"Bug": ["Megahorn"], "Poison": ["Poison Sting", "Poison Jab", "Sludge WaveBDSP"], "Normal": ["Fury Attack", "Horn Attack"], "Fighting": ["Double Kick"], "Ground": ["Earth Power"], "Flying": ["Peck"]},
+    },
+    "Zubat": {
+        "types": ["Poison", "Flying"],
+        "stats": {"hp": 40, "atk": 45, "def": 35, "spa": 30, "spd": 40, "spe": 55},
+        "abilities": ["Inner Focus"],
+        "move_tiers": {"Grass": ["Absorb"], "Flying": ["Gust", "Wing Attack", "Air Slash"], "Dark": ["Bite"], "Normal": ["Quick Attack"], "Poison": ["Poison Fang"], "Bug": ["Leech Life"]},
+    },
+    "Golbat": {
+        "types": ["Poison", "Flying"],
+        "stats": {"hp": 75, "atk": 80, "def": 70, "spa": 65, "spd": 75, "spe": 90},
+        "abilities": ["Inner Focus"],
+        "move_tiers": {"Grass": ["Absorb"], "Flying": ["Gust", "Wing Attack", "Air Slash"], "Dark": ["Bite"], "Normal": ["Quick Attack"], "Poison": ["Poison Fang"], "Bug": ["Leech Life"]},
+    },
+
+
+
+
+
+
+
+
+
+
     # ══════════ Ground ══════════
     "Sandshrew": {
         "types": ["Ground"],
         "stats": {"hp": 50, "atk": 75, "def": 85, "spa": 20, "spd": 30, "spe": 40},
-        "abilities": ["Sand Veil"],
-        "move_tiers": {"Ground": ["Mud Slap", "Dig", "Earthquake"], "Normal": ["Slash"], "Rock": ["Rock Slide"]},
+        "abilities": ["Sand Veil", "Snow Cloak"],
+        "move_tiers": {"Normal": ["Fury Swipes", "Scratch", "Rapid Spin", "Swift", "Slash"], "Poison": ["Poison Sting"], "Rock": ["Rollout"], "Bug": ["Fury Cutter"], "Ground": ["Bulldoze", "Dig", "Earthquake"]},
     },
     "Sandslash": {
         "types": ["Ground"],
         "stats": {"hp": 75, "atk": 100, "def": 110, "spa": 45, "spd": 55, "spe": 65},
-        "abilities": ["Sand Veil"],
-        "move_tiers": {"Ground": ["Mud Slap", "Dig", "Earthquake"], "Normal": ["Slash", "Return"], "Rock": ["Rock Slide", "Stone Edge"]},
+        "abilities": ["Sand Veil", "Snow Cloak"],
+        "move_tiers": {"Normal": ["Fury Swipes", "Scratch", "Rapid Spin", "Swift", "Slash", "Crush Claw"], "Poison": ["Poison Sting"], "Rock": ["Rollout"], "Bug": ["Fury Cutter"], "Ground": ["Sand Tomb", "Bulldoze", "Dig", "Earthquake"]},
     },
     "Flygon": {
         "types": ["Ground", "Dragon"],
@@ -1026,6 +1192,20 @@ POKEMON_DB = {
         "abilities": ["Serene Grace", "Hustle"],
         "move_tiers": {"Fairy": ["Fairy Wind", "Dazzling Gleam", "Moonblast"], "Flying": ["Air Slash"], "Fire": ["Flamethrower"]},
     },
+    "Clefairy": {
+        "types": ["Fairy"],
+        "stats": {"hp": 70, "atk": 45, "def": 48, "spa": 60, "spd": 65, "spe": 35},
+        "abilities": ["Cute Charm", "Magic Guard"],
+        "move_tiers": {"Fairy": ["Disarming Voice", "Moonblast"], "Normal": ["Pound"], "Psychic": ["Stored Power"], "Steel": ["Meteor Mash"]},
+    },
+    "Clefable": {
+        "types": ["Fairy"],
+        "stats": {"hp": 95, "atk": 70, "def": 73, "spa": 85, "spd": 90, "spe": 60},
+        "abilities": ["Cute Charm", "Magic Guard", "Unaware"],
+        "move_tiers": {"Steel": ["Meteor Mash"], "Fairy": ["Disarming Voice", "Moonblast"], "Normal": ["Pound"], "Psychic": ["Stored Power"]},
+    },
+
+
     # ══════════ Normal ══════════
     "Snorlax": {
         "types": ["Normal"],
@@ -1045,6 +1225,48 @@ POKEMON_DB = {
         "abilities": ["Intimidate", "Reckless"],
         "move_tiers": {"Flying": ["Aerial Ace", "Brave Bird"], "Normal": ["Quick Attack", "Return"], "Fighting": ["Close Combat"]},
     },
+    "Rattata": {
+        "types": ["Normal"],
+        "stats": {"hp": 30, "atk": 56, "def": 35, "spa": 25, "spd": 35, "spe": 72},
+        "abilities": ["Guts", "Hustle", "Thick Fat"],
+        "move_tiers": {"Normal": ["Quick Attack", "Take Down", "Double-Edge"], "Dark": ["Bite", "Sucker Punch", "Crunch"]},
+    },
+    "Raticate": {
+        "types": ["Normal"],
+        "stats": {"hp": 55, "atk": 81, "def": 60, "spa": 50, "spd": 70, "spe": 97},
+        "abilities": ["Guts", "Hustle", "Thick Fat"],
+        "move_tiers": {"Normal": ["Tackle", "Take Down", "Double-Edge"], "Dark": ["Assurance", "Sucker Punch", "Crunch"]},
+    },
+    "Spearow": {
+        "types": ["Normal", "Flying"],
+        "stats": {"hp": 40, "atk": 60, "def": 30, "spa": 31, "spd": 31, "spe": 70},
+        "abilities": ["Sniper"],
+        "move_tiers": {"Flying": ["Peck", "Aerial Ace", "Drill Peck"], "Dark": ["Assurance"], "Normal": ["Fury Attack", "Take Down"]},
+    },
+    "Fearow": {
+        "types": ["Normal", "Flying"],
+        "stats": {"hp": 65, "atk": 90, "def": 65, "spa": 61, "spd": 61, "spe": 100},
+        "abilities": ["Sniper"],
+        "move_tiers": {"Ground": ["Drill Run"], "Flying": ["Peck", "Wing Attack", "Drill Peck"], "Dark": ["Assurance"], "Normal": ["Fury Attack", "Take Down"]},
+    },
+    "Jigglypuff": {
+        "types": ["Normal", "Fairy"],
+        "stats": {"hp": 115, "atk": 45, "def": 20, "spa": 45, "spd": 25, "spe": 20},
+        "abilities": ["Cute Charm"],
+        "move_tiers": {"Fairy": ["Disarming Voice"], "Normal": ["Pound", "Covet", "Body Slam", "Hyper Voice", "Double-Edge"]},
+    },
+    "Wigglytuff": {
+        "types": ["Normal", "Fairy"],
+        "stats": {"hp": 140, "atk": 70, "def": 45, "spa": 75, "spd": 50, "spe": 45},
+        "abilities": ["Cute Charm"],
+        "move_tiers": {"Fairy": ["Disarming Voice", "Play Rough"], "Normal": ["Echoed Voice", "Round", "Body Slam", "Hyper Voice", "Double-Edge"]},
+    },
+
+
+
+
+
+
 }
 
 # ─── Evolution Chains ───────────────────────────────────────────────
@@ -1071,6 +1293,18 @@ EVOLVES_FROM = {
     "Beedrill": "Kakuna",
     "Pidgeotto": "Pidgey",
     "Pidgeot": "Pidgeotto",
+    "Raticate": "Rattata",
+    "Fearow": "Spearow",
+    "Arbok": "Ekans",
+    "Nidorina": "Nidoran♀",
+    "Nidoqueen": "Nidorina",
+    "Nidorino": "Nidoran♂",
+    "Nidoking": "Nidorino",
+    "Clefable": "Clefairy",
+    "Ninetales": "Vulpix",
+    "Wigglytuff": "Jigglypuff",
+    "Golbat": "Zubat",
+    "Crobat": "Golbat",
 }
 
 # ─── Type Tiers (ordered weakest → strongest) ──────────────────────
@@ -1078,11 +1312,14 @@ EVOLVES_FROM = {
 # Each entry must have that type. Non-evolution adds grow the team; evolutions replace.
 TYPE_TIERS = {
     "Normal": [
-        "Zangoose", "Staraptor", "Snorlax"
+        "Rattata", "Spearow", "Jigglypuff", "Raticate",
+        "Wigglytuff", "Fearow", "Zangoose", "Staraptor",
+        "Snorlax"
     ],
     "Fire": [
-        "Charmander", "Growlithe", "Charmeleon", "Flareon",
-        "Blaziken", "Charizard", "Magmortar", "Arcanine"
+        "Vulpix", "Charmander", "Growlithe", "Charmeleon",
+        "Ninetales", "Flareon", "Blaziken", "Charizard",
+        "Magmortar", "Arcanine"
     ],
     "Water": [
         "Squirtle", "Wartortle", "Starmie", "Vaporeon",
@@ -1104,7 +1341,9 @@ TYPE_TIERS = {
         "Machamp", "Lucario"
     ],
     "Poison": [
-        "Crobat"
+        "Zubat", "Nidoran♂", "Nidoran♀", "Ekans",
+        "Nidorino", "Nidorina", "Arbok", "Golbat",
+        "Nidoking", "Nidoqueen", "Crobat"
     ],
     "Ground": [
         "Sandshrew", "Sandslash", "Excadrill", "Flygon",
@@ -1138,7 +1377,7 @@ TYPE_TIERS = {
         "Aggron", "Metagross"
     ],
     "Fairy": [
-        "Sylveon", "Togekiss"
+        "Clefairy", "Clefable", "Sylveon", "Togekiss"
     ],
 }
 
@@ -1147,130 +1386,35 @@ TYPE_TIERS = {
 # Each gym leader/E4 starts small; the player upgrades them via the shop.
 
 DEFAULT_GYM_LEADERS = [
-    {
-        "name": "Norman",
-        "title": "Gym Leader 1",
-        "specialty": "Normal",
-        "team": [{"species": "Zangoose", "level": 10}],
-    },
-    {
-        "name": "Bugsy",
-        "title": "Gym Leader 2",
-        "specialty": "Bug",
-        "team": [{"species": "Heracross", "level": 13}],
-    },
-    {
-        "name": "Fantina",
-        "title": "Gym Leader 3",
-        "specialty": "Ghost",
-        "team": [{"species": "Mismagius", "level": 16}],
-    },
-    {
-        "name": "Roxanne",
-        "title": "Gym Leader 4",
-        "specialty": "Rock",
-        "team": [{"species": "Aerodactyl", "level": 19}],
-    },
-    {
-        "name": "Janine",
-        "title": "Gym Leader 5",
-        "specialty": "Poison",
-        "team": [{"species": "Bulbasaur", "level": 22}],
-    },
-    {
-        "name": "Candice",
-        "title": "Gym Leader 6",
-        "specialty": "Ice",
-        "team": [{"species": "Sneasel", "level": 25}],
-    },
-    {
-        "name": "Winona",
-        "title": "Gym Leader 7",
-        "specialty": "Flying",
-        "team": [{"species": "Murkrow", "level": 28}],
-    },
-    {
-        "name": "Maylene",
-        "title": "Gym Leader 8",
-        "specialty": "Fighting",
-        "team": [{"species": "Heracross", "level": 30}],
-    },
-    {
-        "name": "Terra",
-        "title": "Gym Leader 9",
-        "specialty": "Ground",
-        "team": [{"species": "Sandshrew", "level": 32}],
-    },
-    {
-        "name": "Sabrina",
-        "title": "Gym Leader 10",
-        "specialty": "Psychic",
-        "team": [{"species": "Alakazam", "level": 34}],
-    },
-    {
-        "name": "Raven",
-        "title": "Gym Leader 11",
-        "specialty": "Dark",
-        "team": [{"species": "Murkrow", "level": 36}],
-    },
-    {
-        "name": "Jasmine",
-        "title": "Gym Leader 12",
-        "specialty": "Steel",
-        "team": [{"species": "Scizor", "level": 38}],
-    },
-    {
-        "name": "Valerie",
-        "title": "Gym Leader 13",
-        "specialty": "Fairy",
-        "team": [{"species": "Gardevoir", "level": 40}],
-    },
-    {
-        "name": "Drake",
-        "title": "Gym Leader 14",
-        "specialty": "Dragon",
-        "team": [{"species": "Bagon", "level": 42}],
-    },
+    {"name": "Lenora",  "title": "Gym Leader",  "specialty": "Normal",   "team_count": 1, "level": 10},
+    {"name": "Viola",   "title": "Gym Leader",  "specialty": "Bug",      "team_count": 1, "level": 13},
+    {"name": "Skyla",   "title": "Gym Leader",  "specialty": "Flying",   "team_count": 1, "level": 16},
+    {"name": "Roxanne", "title": "Gym Leader",  "specialty": "Rock",     "team_count": 1, "level": 19},
+    {"name": "Roxie",   "title": "Gym Leader",  "specialty": "Poison",   "team_count": 1, "level": 22},
+    {"name": "Giovanni","title": "Gym Leader",  "specialty": "Ground",   "team_count": 2, "level": 25},
+    {"name": "Piers",   "title": "Gym Leader",  "specialty": "Dark",     "team_count": 2, "level": 28},
+    {"name": "Korrina", "title": "Gym Leader",  "specialty": "Fighting", "team_count": 2, "level": 30},
+    {"name": "Morty",   "title": "Gym Leader",  "specialty": "Ghost",    "team_count": 2, "level": 32},
+    {"name": "Tulip",   "title": "Gym Leader", "specialty": "Psychic",  "team_count": 2, "level": 34},
+    {"name": "Byron",   "title": "Gym Leader", "specialty": "Steel",    "team_count": 3, "level": 36},
+    {"name": "Grusha",  "title": "Gym Leader", "specialty": "Ice",      "team_count": 3, "level": 38},
+    {"name": "Valerie", "title": "Gym Leader", "specialty": "Fairy",    "team_count": 3, "level": 40},
+    {"name": "Raihan",  "title": "Gym Leader", "specialty": "Dragon",   "team_count": 3, "level": 42},
 ]
 
 DEFAULT_ELITE_FOUR = [
-    {
-        "name": "Flint",
-        "title": "Elite Four 1",
-        "specialty": "Fire",
-        "team": [
-            {"species": "Charmander", "level": 45},
-            {"species": "Growlithe", "level": 47},
-        ],
-    },
-    {
-        "name": "Marina",
-        "title": "Elite Four 2",
-        "specialty": "Water",
-        "team": [
-            {"species": "Squirtle", "level": 48},
-            {"species": "Starmie", "level": 50},
-        ],
-    },
-    {
-        "name": "Gardenia",
-        "title": "Elite Four 3",
-        "specialty": "Grass",
-        "team": [
-            {"species": "Bulbasaur", "level": 51},
-            {"species": "Roserade", "level": 53},
-        ],
-    },
-    {
-        "name": "Surge",
-        "title": "Elite Four 4",
-        "specialty": "Electric",
-        "team": [
-            {"species": "Pikachu", "level": 54},
-            {"species": "Ampharos", "level": 56},
-        ],
-    },
+    {"name": "Marlon", "title": "Elite Member", "specialty": "Water",    "team_count": 4, "level": 46},
+    {"name": "Milo",   "title": "Elite Member", "specialty": "Grass",    "team_count": 4, "level": 50},
+    {"name": "Kabu",   "title": "Elite Member", "specialty": "Fire",     "team_count": 4, "level": 53},
+    {"name": "Elesa",  "title": "Elite Member", "specialty": "Electric", "team_count": 4, "level": 56},
 ]
+
+
+def build_trainer_team(specialty, team_count, level):
+    """Build a team from the weakest Pokemon in the specialty's TYPE_TIER."""
+    tiers = TYPE_TIERS.get(specialty, [])
+    species_list = tiers[:team_count]
+    return [{"species": s, "level": level} for s in species_list]
 
 # ─── Challenger Name Parts ──────────────────────────────────────────
 CHALLENGER_FIRST_NAMES = [
