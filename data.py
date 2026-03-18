@@ -1429,20 +1429,3 @@ CHALLENGER_LAST_NAMES = [
     "Hilbert", "Calem", "Serena", "Elio", "Selene", "Victor", "Gloria",
 ]
 
-# Pokemon pools by rough difficulty tier (for challenger generation)
-CHALLENGER_POKEMON_TIERS = {
-    "weak": [
-        "Charmander", "Squirtle", "Bulbasaur", "Pikachu", "Zangoose",
-    ],
-    "medium": [
-        "Arcanine", "Vaporeon", "Jolteon", "Sceptile", "Roserade",
-        "Crobat", "Staraptor", "Heracross", "Machamp", "Absol",
-        "Luxray", "Mismagius", "Glaceon", "Espeon", "Aerodactyl",
-    ],
-    "strong": [
-        "Gyarados", "Gengar", "Alakazam", "Garchomp", "Dragonite",
-        "Salamence", "Tyranitar", "Metagross", "Scizor", "Blaziken",
-        "Togekiss", "Lucario", "Chandelure", "Gardevoir", "Weavile",
-        "Lapras", "Snorlax", "Sylveon", "Aggron", "Flygon", "Umbreon",
-    ],
-}

@@ -712,6 +712,10 @@ class BattleScene(Scene):
                 f"({ev['hp']}/{ev['max_hp']} HP)", C_RED)
         elif t == "faint":
             self.log.add(f"{ev['target']} fainted!", C_RED)
+            if ev.get("side") == "player":
+                bounty = 10 + self.state.challengers_beaten * 2
+                self.state.money += bounty
+                self.log.add(f"+${bounty} for defeating {ev['target']}!", C_GOLD)
         elif t == "send_out":
             self.enemy_poke = self.enemy_trainer.first_available()
             if self.enemy_poke:
@@ -1360,7 +1364,11 @@ class ShopScene(Scene):
                    callback=lambda: self._pick_poke_for_move(member),
                    font_size=22, border_color=C_ACCENT))
         self.sub_buttons.append(
-            Button("Cancel", SCREEN_W // 2 - 100, 505, 200, 50,
+            Button("Level Up Team (+5 Lvls)  ($100)", bx, 500, 800, 80,
+                   callback=lambda: self._do_team_levelup(member),
+                   font_size=22, border_color=C_GREEN))
+        self.sub_buttons.append(
+            Button("Cancel", SCREEN_W // 2 - 100, 605, 200, 50,
                    callback=self._build_main, font_size=18,
                    border_color=C_RED))
 
@@ -1376,6 +1384,18 @@ class ShopScene(Scene):
         self._show_message(
             f"{species} Lv.{new_level} joined "
             f"{member.display_name()}'s team! (-$200)", C_GREEN)
+        self._build_member_actions(member)
+
+    def _do_team_levelup(self, member):
+        if self.state.money < 100:
+            self._show_message("Not enough money! Need $100.", C_RED)
+            return
+        for p in member.team:
+            p.level_up(5)
+        self.state.money -= 100
+        self._show_message(
+            f"All of {member.display_name()}'s Pokemon gained 5 levels! (-$100)",
+            C_GREEN)
         self._build_member_actions(member)
 
     def _pick_poke_for_move(self, member):
