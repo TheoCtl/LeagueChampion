@@ -497,6 +497,46 @@ MOVES_DB = {
     "Shell Smash":  {"type": "Normal", "category": "status",  "power": 0, "accuracy": 0, "effect": MoveEffect.CHANGE_TARGET_ATK, "effect_param": 2},
     "Curse":        {"type": "Ghost", "category": "status",   "power": 0, "accuracy": 0, "effect": MoveEffect.CURSE},
     "Confuse Ray":  {"type": "Ghost", "category": "status",   "power": 0, "accuracy": 100, "effect": MoveEffect.CONFUSE},
+    # ── Auto-added ──
+    "Seed Bomb": {"type": "Grass", "category": "physical", "power": 80, "accuracy": 100},
+    # ── Auto-added ──
+    "Take Down": {"type": "Normal", "category": "physical", "power": 90, "accuracy": 85},
+    # ── Auto-added ──
+    "Power Whip": {"type": "Grass", "category": "physical", "power": 120, "accuracy": 85},
+    # ── Auto-added ──
+    "Petal Dance": {"type": "Grass", "category": "special", "power": 120, "accuracy": 100},
+    # ── Auto-added ──
+    "Petal Blizzard": {"type": "Grass", "category": "physical", "power": 90, "accuracy": 100},
+    # ── Auto-added ──
+    "Scratch": {"type": "Normal", "category": "physical", "power": 40, "accuracy": 100},
+    # ── Auto-added ──
+    "Fire Spin": {"type": "Fire", "category": "special", "power": 35, "accuracy": 85},
+    # ── Auto-added ──
+    "Inferno": {"type": "Fire", "category": "special", "power": 100, "accuracy": 50},
+    # ── Auto-added ──
+    "Heat Wave": {"type": "Fire", "category": "special", "power": 95, "accuracy": 90},
+    # ── Auto-added ──
+    "Water Pulse": {"type": "Water", "category": "special", "power": 60, "accuracy": 100},
+    # ── Auto-added ──
+    "Wave Crash": {"type": "Water", "category": "physical", "power": 120, "accuracy": 100},
+    # ── Auto-added ──
+    "Psybeam": {"type": "Psychic", "category": "special", "power": 65, "accuracy": 100},
+    # ── Auto-added ──
+    "Bug Buzz": {"type": "Bug", "category": "special", "power": 90, "accuracy": 100},
+    # ── Auto-added ──
+    "Pin Missile": {"type": "Bug", "category": "physical", "power": 15, "accuracy": 100},
+    # ── Auto-added ──
+    "Brutal Swing": {"type": "Dark", "category": "physical", "power": 60, "accuracy": 100},
+    # ── Auto-added ──
+    "Lunge": {"type": "Bug", "category": "physical", "power": 80, "accuracy": 100},
+    # ── Auto-added ──
+    "Poison Jab": {"type": "Poison", "category": "physical", "power": 80, "accuracy": 100},
+    # ── Auto-added ──
+    "Drill Run": {"type": "Ground", "category": "physical", "power": 80, "accuracy": 100},
+    # ── Auto-added ──
+    "Twister": {"type": "Dragon", "category": "special", "power": 40, "accuracy": 100},
+    # ── Auto-added ──
+    "Hurricane": {"type": "Flying", "category": "special", "power": 110, "accuracy": 100},
 }
 
 
@@ -510,7 +550,7 @@ POKEMON_DB = {
         "types": ["Fire"],
         "stats": {"hp": 39, "atk": 52, "def": 43, "spa": 60, "spd": 50, "spe": 65},
         "abilities": ["Blaze"],
-        "move_tiers": {"Fire": ["Ember", "Flamethrower", "Fire Blast"], "Normal": ["Tackle", "Slash"], "Dragon": ["Dragon Claw"]},
+        "move_tiers": {"Normal": ["Scratch", "Slash"], "Fire": ["Fire Spin", "Ember", "Fire Fang", "Flamethrower", "Inferno", "Flare Blitz"], "Dragon": ["Dragon Breath"]},
     },
     "Growlithe": {
         "types": ["Fire"],
@@ -522,7 +562,7 @@ POKEMON_DB = {
         "types": ["Fire"],
         "stats": {"hp": 58, "atk": 64, "def": 58, "spa": 80, "spd": 65, "spe": 80},
         "abilities": ["Blaze"],
-        "move_tiers": {"Fire": ["Ember", "Flamethrower", "Fire Blast"], "Normal": ["Slash", "Return"], "Dragon": ["Dragon Claw"]},
+        "move_tiers": {"Normal": ["Scratch", "Slash"], "Fire": ["Ember", "Fire Fang", "Flamethrower", "Inferno", "Flare Blitz"], "Dragon": ["Dragon Breath"]},
     },
     "Flareon": {
         "types": ["Fire"],
@@ -539,8 +579,8 @@ POKEMON_DB = {
     "Charizard": {
         "types": ["Fire", "Flying"],
         "stats": {"hp": 78, "atk": 84, "def": 78, "spa": 109, "spd": 85, "spe": 100},
-        "abilities": ["Blaze"],
-        "move_tiers": {"Fire": ["Ember", "Flamethrower", "Fire Blast"], "Flying": ["Air Slash"], "Dragon": ["Dragon Claw", "Dragon Pulse"]},
+        "abilities": ["Blaze", "Drought"],
+        "move_tiers": {"Dragon": ["Dragon Breath", "Dragon Claw"], "Fire": ["Fire Spin", "Ember", "Fire Fang", "Flamethrower", "Heat Wave", "Inferno", "Flare Blitz"], "Normal": ["Scratch", "Slash"], "Flying": ["Air Slash"]},
     },
     "Blaziken": {
         "types": ["Fire", "Fighting"],
@@ -564,14 +604,14 @@ POKEMON_DB = {
     "Squirtle": {
         "types": ["Water"],
         "stats": {"hp": 44, "atk": 48, "def": 65, "spa": 50, "spd": 64, "spe": 43},
-        "abilities": ["Torrent"],
-        "move_tiers": {"Water": ["Water Gun", "Surf", "Hydro Pump"], "Normal": ["Tackle", "Body Slam"], "Ice": ["Ice Beam"]},
+        "abilities": ["Torrent", "Rain Dish"],
+        "move_tiers": {"Normal": ["Tackle", "Rapid Spin"], "Water": ["Water Gun", "Water Pulse", "Aqua Tail", "Hydro Pump", "Wave Crash"], "Dark": ["Bite"]},
     },
     "Wartortle": {
         "types": ["Water"],
         "stats": {"hp": 59, "atk": 63, "def": 80, "spa": 65, "spd": 80, "spe": 58},
-        "abilities": ["Torrent"],
-        "move_tiers": {"Water": ["Water Gun", "Surf", "Hydro Pump"], "Ice": ["Ice Beam"], "Normal": ["Body Slam", "Return"]},
+        "abilities": ["Torrent", "Rain Dish"],
+        "move_tiers": {"Normal": ["Tackle", "Rapid Spin"], "Water": ["Water Gun", "Water Pulse", "Aqua Tail", "Hydro Pump", "Wave Crash"], "Dark": ["Bite"]},
     },
     "Vaporeon": {
         "types": ["Water"],
@@ -582,8 +622,8 @@ POKEMON_DB = {
     "Blastoise": {
         "types": ["Water"],
         "stats": {"hp": 79, "atk": 83, "def": 100, "spa": 85, "spd": 105, "spe": 78},
-        "abilities": ["Torrent"],
-        "move_tiers": {"Water": ["Water Gun", "Surf", "Hydro Pump"], "Ice": ["Ice Beam", "Blizzard"], "Dark": ["Dark Pulse"]},
+        "abilities": ["Torrent", "Rain Dish"],
+        "move_tiers": {"Normal": ["Tackle", "Rapid Spin"], "Water": ["Water Gun", "Water Pulse", "Aqua Tail", "Hydro Pump", "Wave Crash"], "Steel": ["Flash Cannon"], "Dark": ["Bite"]},
     },
     "Starmie": {
         "types": ["Water", "Psychic"],
@@ -614,7 +654,7 @@ POKEMON_DB = {
         "types": ["Grass", "Poison"],
         "stats": {"hp": 45, "atk": 49, "def": 49, "spa": 65, "spd": 65, "spe": 45},
         "abilities": ["Overgrow"],
-        "move_tiers": {"Grass": ["Vine Whip", "Razor Leaf", "Energy Ball"], "Normal": ["Tackle", "Body Slam"], "Poison": ["Sludge Bomb"]},
+        "move_tiers": {"Normal": ["Tackle", "Take Down"], "Grass": ["Vine Whip", "Razor Leaf", "Seed Bomb", "Power Whip", "Solar Beam"]},
     },
     "Roserade": {
         "types": ["Grass", "Poison"],
@@ -628,6 +668,20 @@ POKEMON_DB = {
         "abilities": ["Overgrow"],
         "move_tiers": {"Grass": ["Vine Whip", "Leaf Blade", "Energy Ball"], "Dragon": ["Dragon Claw"], "Normal": ["Quick Attack", "Return"]},
     },
+    "Ivysaur": {
+        "types": ["Grass", "Poison"],
+        "stats": {"hp": 60, "atk": 62, "def": 63, "spa": 80, "spd": 80, "spe": 60},
+        "abilities": ["Overgrow"],
+        "move_tiers": {"Normal": ["Tackle", "Take Down"], "Grass": ["Vine Whip", "Razor Leaf", "Seed Bomb", "Power Whip", "Solar Beam"]},
+    },
+    "Venusaur": {
+        "types": ["Grass", "Poison"],
+        "stats": {"hp": 80, "atk": 82, "def": 83, "spa": 100, "spd": 100, "spe": 80},
+        "abilities": ["Overgrow", "Thick Fat"],
+        "move_tiers": {"Grass": ["Vine Whip", "Razor Leaf", "Seed Bomb", "Petal Blizzard", "Petal Dance", "Power Whip", "Solar Beam"], "Normal": ["Tackle", "Take Down"]},
+    },
+
+
     # ══════════ Electric ══════════
     "Pikachu": {
         "types": ["Electric"],
@@ -754,17 +808,23 @@ POKEMON_DB = {
         "move_tiers": {"Ground": ["Earthquake"], "Dragon": ["Dragon Claw", "Outrage"], "Rock": ["Stone Edge"], "Fire": ["Fire Blast"]},
     },
     # ══════════ Flying ══════════
-    "Staraptor": {
-        "types": ["Normal", "Flying"],
-        "stats": {"hp": 85, "atk": 120, "def": 70, "spa": 50, "spd": 60, "spe": 100},
-        "abilities": ["Intimidate", "Reckless"],
-        "move_tiers": {"Flying": ["Aerial Ace", "Brave Bird"], "Normal": ["Quick Attack", "Return"], "Fighting": ["Close Combat"]},
+    "Pidgey": {
+        "types": ["Flying", "Normal"],
+        "stats": {"hp": 40, "atk": 45, "def": 40, "spa": 35, "spd": 35, "spe": 56},
+        "abilities": ["Adaptability"],
+        "move_tiers": {"Normal": ["Quick Attack", "Tackle"], "Flying": ["Gust", "Wing Attack", "Air Slash", "Hurricane", "Brave Bird"], "Dragon": ["Twister"]},
     },
-    "Togekiss": {
-        "types": ["Fairy", "Flying"],
-        "stats": {"hp": 85, "atk": 50, "def": 95, "spa": 120, "spd": 115, "spe": 80},
-        "abilities": ["Serene Grace", "Hustle"],
-        "move_tiers": {"Fairy": ["Fairy Wind", "Dazzling Gleam", "Moonblast"], "Flying": ["Air Slash"], "Fire": ["Flamethrower"]},
+    "Pidgeotto": {
+        "types": ["Flying", "Normal"],
+        "stats": {"hp": 63, "atk": 60, "def": 55, "spa": 50, "spd": 50, "spe": 71},
+        "abilities": ["Adaptability"],
+        "move_tiers": {"Normal": ["Quick Attack", "Tackle"], "Flying": ["Gust", "Wing Attack", "Air Slash", "Hurricane", "Brave Bird"], "Dragon": ["Twister"]},
+    },
+    "Pidgeot": {
+        "types": ["Flying", "Normal"],
+        "stats": {"hp": 83, "atk": 80, "def": 75, "spa": 70, "spd": 70, "spe": 91},
+        "abilities": ["No Guard"],
+        "move_tiers": {"Normal": ["Quick Attack", "Tackle"], "Flying": ["Gust", "Wing Attack", "Air Slash", "Hurricane", "Brave Bird"], "Dragon": ["Twister"]},
     },
     # ══════════ Psychic ══════════
     "Alakazam": {
@@ -797,6 +857,42 @@ POKEMON_DB = {
         "stats": {"hp": 80, "atk": 125, "def": 75, "spa": 40, "spd": 95, "spe": 85},
         "abilities": ["Swarm", "Guts", "Moxie"],
         "move_tiers": {"Bug": ["Bug Bite", "X-Scissor"], "Fighting": ["Brick Break", "Close Combat"], "Rock": ["Stone Edge"]},
+    },
+    "Caterpie": {
+        "types": ["Bug"],
+        "stats": {"hp": 45, "atk": 30, "def": 35, "spa": 20, "spd": 20, "spe": 45},
+        "abilities": ["Swarm"],
+        "move_tiers": {"Normal": ["Tackle"], "Bug": ["Bug Bite"]},
+    },
+    "Metapod": {
+        "types": ["Bug"],
+        "stats": {"hp": 50, "atk": 20, "def": 55, "spa": 25, "spd": 25, "spe": 30},
+        "abilities": ["Shed Skin"],
+        "move_tiers": {"Normal": ["Tackle"]},
+    },
+    "Butterfree": {
+        "types": ["Bug", "Flying"],
+        "stats": {"hp": 60, "atk": 45, "def": 50, "spa": 80, "spd": 80, "spe": 70},
+        "abilities": ["Compound Eyes", "Tinted Lens"],
+        "move_tiers": {"Flying": ["Gust", "Air Slash"], "Normal": ["Tackle"], "Bug": ["Bug Bite", "Bug Buzz"], "Psychic": ["Confusion", "Psybeam"]},
+    },
+    "Weedle": {
+        "types": ["Bug", "Poison"],
+        "stats": {"hp": 40, "atk": 35, "def": 30, "spa": 20, "spd": 20, "spe": 50},
+        "abilities": ["Swarm"],
+        "move_tiers": {"Poison": ["Poison Sting"]},
+    },
+    "Kakuna": {
+        "types": ["Bug", "Poison"],
+        "stats": {"hp": 45, "atk": 25, "def": 50, "spa": 25, "spd": 25, "spe": 35},
+        "abilities": ["Shed Skin"],
+        "move_tiers": {"Normal": ["Tackle"]},
+    },
+    "Beedrill": {
+        "types": ["Bug", "Poison"],
+        "stats": {"hp": 65, "atk": 80, "def": 40, "spa": 45, "spd": 80, "spe": 75},
+        "abilities": ["Swarm", "Sniper", "Adaptability"],
+        "move_tiers": {"Bug": ["Pin Missile", "X-Scissor", "Bug Buzz"], "Poison": ["Poison Sting", "Poison Jab"], "Dark": ["Brutal Swing"], "Ground": ["Drill Run"]},
     },
     # ══════════ Rock ══════════
     "Tyranitar": {
@@ -924,6 +1020,12 @@ POKEMON_DB = {
         "abilities": ["Cute Charm", "Pixilate"],
         "move_tiers": {"Fairy": ["Fairy Wind", "Dazzling Gleam", "Moonblast"], "Psychic": ["Psyshock"], "Ghost": ["Shadow Ball"]},
     },
+    "Togekiss": {
+        "types": ["Fairy", "Flying"],
+        "stats": {"hp": 85, "atk": 50, "def": 95, "spa": 120, "spd": 115, "spe": 80},
+        "abilities": ["Serene Grace", "Hustle"],
+        "move_tiers": {"Fairy": ["Fairy Wind", "Dazzling Gleam", "Moonblast"], "Flying": ["Air Slash"], "Fire": ["Flamethrower"]},
+    },
     # ══════════ Normal ══════════
     "Snorlax": {
         "types": ["Normal"],
@@ -936,6 +1038,12 @@ POKEMON_DB = {
         "stats": {"hp": 73, "atk": 115, "def": 60, "spa": 60, "spd": 60, "spe": 90},
         "abilities": ["Immunity", "Toxic Boost"],
         "move_tiers": {"Normal": ["Slash", "Facade", "Return"], "Fighting": ["Brick Break", "Close Combat"], "Dark": ["Knock Off"]},
+    },
+    "Staraptor": {
+        "types": ["Normal", "Flying"],
+        "stats": {"hp": 85, "atk": 120, "def": 70, "spa": 50, "spd": 60, "spe": 100},
+        "abilities": ["Intimidate", "Reckless"],
+        "move_tiers": {"Flying": ["Aerial Ace", "Brave Bird"], "Normal": ["Quick Attack", "Return"], "Fighting": ["Close Combat"]},
     },
 }
 
@@ -955,35 +1063,82 @@ EVOLVES_FROM = {
     "Dragonite": "Dragonair",
     "Shelgon": "Bagon",
     "Salamence": "Shelgon",
+    "Ivysaur": "Bulbasaur",
+    "Venusaur": "Ivysaur",
+    "Metapod": "Caterpie",
+    "Butterfree": "Metapod",
+    "Kakuna": "Weedle",
+    "Beedrill": "Kakuna",
+    "Pidgeotto": "Pidgey",
+    "Pidgeot": "Pidgeotto",
 }
 
 # ─── Type Tiers (ordered weakest → strongest) ──────────────────────
 # Used by the shop to determine the next Pokemon upgrade for each specialty.
 # Each entry must have that type. Non-evolution adds grow the team; evolutions replace.
 TYPE_TIERS = {
+    "Normal": [
+        "Zangoose", "Staraptor", "Snorlax"
+    ],
     "Fire": [
         "Charmander", "Growlithe", "Charmeleon", "Flareon",
-        "Arcanine", "Charizard", "Blaziken", "Chandelure", "Magmortar",
+        "Blaziken", "Charizard", "Magmortar", "Arcanine"
     ],
     "Water": [
-        "Squirtle", "Wartortle", "Vaporeon", "Blastoise",
-        "Starmie", "Gyarados", "Milotic", "Lapras",
+        "Squirtle", "Wartortle", "Starmie", "Vaporeon",
+        "Blastoise", "Lapras", "Gyarados", "Kingdra",
+        "Milotic"
+    ],
+    "Grass": [
+        "Bulbasaur", "Ivysaur", "Roserade", "Venusaur",
+        "Sceptile"
     ],
     "Electric": [
-        "Pikachu", "Raichu", "Jolteon", "Luxray",
-        "Ampharos", "Electivire", "Magnezone",
+        "Pikachu", "Raichu", "Ampharos", "Luxray",
+        "Jolteon", "Magnezone", "Electivire"
+    ],
+    "Ice": [
+        "Glaceon", "Mamoswine"
+    ],
+    "Fighting": [
+        "Machamp", "Lucario"
+    ],
+    "Poison": [
+        "Crobat"
     ],
     "Ground": [
-        "Sandshrew", "Sandslash", "Flygon", "Hippowdon",
-        "Excadrill", "Mamoswine", "Garchomp",
+        "Sandshrew", "Sandslash", "Excadrill", "Flygon",
+        "Hippowdon"
+    ],
+    "Flying": [
+        "Pidgey", "Pidgeotto", "Pidgeot"
+    ],
+    "Psychic": [
+        "Alakazam", "Gardevoir", "Espeon"
+    ],
+    "Bug": [
+        "Caterpie", "Weedle", "Kakuna", "Metapod",
+        "Beedrill", "Butterfree", "Heracross", "Scizor"
+    ],
+    "Rock": [
+        "Aerodactyl", "Tyranitar"
+    ],
+    "Ghost": [
+        "Mismagius", "Gengar", "Chandelure"
+    ],
+    "Dragon": [
+        "Bagon", "Dratini", "Dragonair", "Shelgon",
+        "Haxorus", "Dragonite", "Garchomp", "Salamence"
     ],
     "Dark": [
         "Murkrow", "Sneasel", "Absol", "Honchkrow",
-        "Zoroark", "Umbreon", "Weavile", "Tyranitar",
+        "Weavile", "Zoroark", "Umbreon"
     ],
-    "Dragon": [
-        "Dratini", "Bagon", "Dragonair", "Shelgon",
-        "Flygon", "Haxorus", "Kingdra", "Dragonite", "Salamence", "Garchomp",
+    "Steel": [
+        "Aggron", "Metagross"
+    ],
+    "Fairy": [
+        "Sylveon", "Togekiss"
     ],
 }
 
@@ -993,48 +1148,126 @@ TYPE_TIERS = {
 
 DEFAULT_GYM_LEADERS = [
     {
-        "name": "Flint",
+        "name": "Norman",
         "title": "Gym Leader 1",
-        "specialty": "Fire",
-        "team": [{"species": "Charmander", "level": 12}],
+        "specialty": "Normal",
+        "team": [{"species": "Zangoose", "level": 10}],
     },
     {
-        "name": "Marina",
+        "name": "Bugsy",
         "title": "Gym Leader 2",
-        "specialty": "Water",
-        "team": [{"species": "Squirtle", "level": 16}],
+        "specialty": "Bug",
+        "team": [{"species": "Heracross", "level": 13}],
     },
     {
-        "name": "Surge",
+        "name": "Fantina",
         "title": "Gym Leader 3",
-        "specialty": "Electric",
-        "team": [{"species": "Pikachu", "level": 22}],
+        "specialty": "Ghost",
+        "team": [{"species": "Mismagius", "level": 16}],
+    },
+    {
+        "name": "Roxanne",
+        "title": "Gym Leader 4",
+        "specialty": "Rock",
+        "team": [{"species": "Aerodactyl", "level": 19}],
+    },
+    {
+        "name": "Janine",
+        "title": "Gym Leader 5",
+        "specialty": "Poison",
+        "team": [{"species": "Bulbasaur", "level": 22}],
+    },
+    {
+        "name": "Candice",
+        "title": "Gym Leader 6",
+        "specialty": "Ice",
+        "team": [{"species": "Sneasel", "level": 25}],
+    },
+    {
+        "name": "Winona",
+        "title": "Gym Leader 7",
+        "specialty": "Flying",
+        "team": [{"species": "Murkrow", "level": 28}],
+    },
+    {
+        "name": "Maylene",
+        "title": "Gym Leader 8",
+        "specialty": "Fighting",
+        "team": [{"species": "Heracross", "level": 30}],
     },
     {
         "name": "Terra",
-        "title": "Gym Leader 4",
+        "title": "Gym Leader 9",
         "specialty": "Ground",
-        "team": [{"species": "Sandshrew", "level": 28}],
+        "team": [{"species": "Sandshrew", "level": 32}],
+    },
+    {
+        "name": "Sabrina",
+        "title": "Gym Leader 10",
+        "specialty": "Psychic",
+        "team": [{"species": "Alakazam", "level": 34}],
+    },
+    {
+        "name": "Raven",
+        "title": "Gym Leader 11",
+        "specialty": "Dark",
+        "team": [{"species": "Murkrow", "level": 36}],
+    },
+    {
+        "name": "Jasmine",
+        "title": "Gym Leader 12",
+        "specialty": "Steel",
+        "team": [{"species": "Scizor", "level": 38}],
+    },
+    {
+        "name": "Valerie",
+        "title": "Gym Leader 13",
+        "specialty": "Fairy",
+        "team": [{"species": "Gardevoir", "level": 40}],
+    },
+    {
+        "name": "Drake",
+        "title": "Gym Leader 14",
+        "specialty": "Dragon",
+        "team": [{"species": "Bagon", "level": 42}],
     },
 ]
 
 DEFAULT_ELITE_FOUR = [
     {
-        "name": "Raven",
+        "name": "Flint",
         "title": "Elite Four 1",
-        "specialty": "Dark",
+        "specialty": "Fire",
         "team": [
-            {"species": "Murkrow", "level": 34},
-            {"species": "Sneasel", "level": 36},
+            {"species": "Charmander", "level": 45},
+            {"species": "Growlithe", "level": 47},
         ],
     },
     {
-        "name": "Drake",
+        "name": "Marina",
         "title": "Elite Four 2",
-        "specialty": "Dragon",
+        "specialty": "Water",
         "team": [
-            {"species": "Dratini", "level": 40},
-            {"species": "Bagon", "level": 42},
+            {"species": "Squirtle", "level": 48},
+            {"species": "Starmie", "level": 50},
+        ],
+    },
+    {
+        "name": "Gardenia",
+        "title": "Elite Four 3",
+        "specialty": "Grass",
+        "team": [
+            {"species": "Bulbasaur", "level": 51},
+            {"species": "Roserade", "level": 53},
+        ],
+    },
+    {
+        "name": "Surge",
+        "title": "Elite Four 4",
+        "specialty": "Electric",
+        "team": [
+            {"species": "Pikachu", "level": 54},
+            {"species": "Ampharos", "level": 56},
         ],
     },
 ]

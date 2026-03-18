@@ -1,0 +1,24 @@
+- new trainers in the league (14 Gym Leaders, 4 Elite Four members - fire, grass, water, electric)
+
+- lots of new options for challengers (challenger pokemon tiers), better scalability (move tiers proportionnal to pkmn lvl, etc)
+
+- lots of new pokemon/moves
+
+- sprites for trainers
+
+- sprites for pokemon
+
+- sprites for moves ?
+
+- better HUDs
+
+- french translation
+
+
+
+
+
+(way in the future)
+- map + playable character (central hub + teleporters to other gyms to updgrade their leaders)
+- gym upgrades
+- mega evolutions

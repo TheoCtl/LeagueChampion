@@ -275,36 +275,36 @@ class DayScene(Scene):
         draw_text(screen, self.engine, "TODAY'S MATCHUP",
                   SCREEN_W // 2, 85, 22, C_ACCENT, anchor="midtop")
 
-        # Challenger side (left)
+        # Defender side (left)
         panel_w = (SCREEN_W - 80) // 2 - 10
-        chall_panel = Panel(30, 120, panel_w, 420, title="CHALLENGER",
-                            border=(180, 60, 60), title_color=C_RED)
-        chall_panel.draw(screen, self.engine)
+        def_panel = Panel(30, 120, panel_w, 420, title="DEFENDER",
+                          border=(60, 140, 80), title_color=C_GREEN)
+        def_panel.draw(screen, self.engine)
 
-        draw_text(screen, self.engine, challenger.display_name(),
+        draw_text(screen, self.engine, member.display_name(),
                   50, 148, 20, C_TEXT_BRIGHT)
         draw_text(screen, self.engine,
                   f"Stage {s.challenger_position + 1}/{len(s.league)}",
                   50, 172, 14, C_TEXT_DIM)
 
-        cy = 200
-        for p in challenger.team:
-            h = draw_pokemon_card(screen, self.engine, p, 45, cy, panel_w - 40, show_moves=True)
-            cy += h + 6
-
-        # Defender side (right)
-        def_x = SCREEN_W // 2 + 10
-        def_panel = Panel(def_x, 120, panel_w, 420, title="DEFENDER",
-                          border=(60, 140, 80), title_color=C_GREEN)
-        def_panel.draw(screen, self.engine)
-
-        draw_text(screen, self.engine, member.display_name(),
-                  def_x + 20, 148, 20, C_TEXT_BRIGHT)
-
         dy = 200
         for p in member.team:
-            h = draw_pokemon_card(screen, self.engine, p, def_x + 15, dy, panel_w - 40, show_moves=True)
+            h = draw_pokemon_card(screen, self.engine, p, 45, dy, panel_w - 40, show_moves=True)
             dy += h + 6
+
+        # Challenger side (right)
+        chall_x = SCREEN_W // 2 + 10
+        chall_panel = Panel(chall_x, 120, panel_w, 420, title="CHALLENGER",
+                            border=(180, 60, 60), title_color=C_RED)
+        chall_panel.draw(screen, self.engine)
+
+        draw_text(screen, self.engine, challenger.display_name(),
+                  chall_x + 20, 148, 20, C_TEXT_BRIGHT)
+
+        cy = 200
+        for p in challenger.team:
+            h = draw_pokemon_card(screen, self.engine, p, chall_x + 15, cy, panel_w - 40, show_moves=True)
+            cy += h + 6
 
         # VS divider
         draw_text(screen, self.engine, "VS",
@@ -715,6 +715,8 @@ class BattleScene(Scene):
         # Fully cure all league Pokemon after every battle
         for member in s.league:
             member.heal_all()
+        if s.current_challenger:
+            s.current_challenger.heal_all()
 
         if self.result:
             reward = 50 + s.challenger_position * 25
