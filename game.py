@@ -11,6 +11,7 @@ from engine import (
     C_TEXT, C_TEXT_DIM, C_TEXT_BRIGHT, C_ACCENT, C_GOLD, C_GREEN, C_RED,
     C_YELLOW, C_BTN, C_BTN_HOVER, C_BTN_BORDER,
     draw_text, draw_type_badges, draw_pokemon_card, type_color,
+    draw_pokemon_sprite,
 )
 from pokemon import Trainer, Pokemon
 from battle_logic import (
@@ -176,7 +177,8 @@ class TitleScene(Scene):
         panel = Panel(x, y, w, 440)
         panel.draw(screen, self.engine)
 
-        draw_text(screen, self.engine, species, x + 20, y + 10, 24, C_TEXT_BRIGHT)
+        draw_pokemon_sprite(screen, self.engine, species, x + 20, y + 10, 28)
+        draw_text(screen, self.engine, species, x + 54, y + 10, 24, C_TEXT_BRIGHT)
         draw_type_badges(screen, self.engine, pdata["types"], x + 20, y + 40)
 
         stats = pdata["stats"]
@@ -767,8 +769,9 @@ class BattleScene(Scene):
             player_panel = Panel(20, 50, SCREEN_W // 2 - 30, 160, title="YOUR POKEMON",
                                  border=C_GREEN, title_color=C_GREEN)
             player_panel.draw(screen, self.engine)
+            draw_pokemon_sprite(screen, self.engine, self.player_poke.species, 40, 74, 32)
             draw_text(screen, self.engine, f"{self.player_poke.species}  Lv.{self.player_poke.level}",
-                      40, 78, 24, C_TEXT_BRIGHT)
+                      78, 78, 24, C_TEXT_BRIGHT)
             draw_type_badges(screen, self.engine, self.player_poke.types, 40, 110)
             hp = HPBar(40, 140, SCREEN_W // 2 - 90, 24,
                        self.player_poke.current_hp, self.player_poke.max_hp)
@@ -795,8 +798,9 @@ class BattleScene(Scene):
             enemy_panel = Panel(ex, 50, SCREEN_W // 2 - 30, 160, title="FOE POKEMON",
                                 border=C_RED, title_color=C_RED)
             enemy_panel.draw(screen, self.engine)
+            draw_pokemon_sprite(screen, self.engine, self.enemy_poke.species, ex + 20, 74, 32)
             draw_text(screen, self.engine, f"{self.enemy_poke.species}  Lv.{self.enemy_poke.level}",
-                      ex + 20, 78, 24, C_TEXT_BRIGHT)
+                      ex + 58, 78, 24, C_TEXT_BRIGHT)
             draw_type_badges(screen, self.engine, self.enemy_poke.types, ex + 20, 110)
             hp = HPBar(ex + 20, 140, SCREEN_W // 2 - 90, 24,
                        self.enemy_poke.current_hp, self.enemy_poke.max_hp)
@@ -831,13 +835,23 @@ class BattleScene(Scene):
         self._draw_team_bar(screen, self.player_trainer, 20, 220, "YOUR TEAM")
         self._draw_team_bar(screen, self.enemy_trainer, SCREEN_W // 2 + 10, 220, "FOE TEAM")
 
-        # Sprite placeholder areas
+        # Sprite areas
         pygame.draw.rect(screen, C_BG_LIGHT, (130, 300, 150, 150), border_radius=12)
-        draw_text(screen, self.engine, self.player_poke.species if self.player_poke else "?",
-                  205, 370, 16, C_TEXT_DIM, anchor="center")
+        if self.player_poke:
+            spr = self.engine.get_sprite(self.player_poke.species, 130)
+            if spr:
+                screen.blit(spr, (140, 310))
+            else:
+                draw_text(screen, self.engine, self.player_poke.species,
+                          205, 370, 16, C_TEXT_DIM, anchor="center")
         pygame.draw.rect(screen, C_BG_LIGHT, (SCREEN_W - 280, 300, 150, 150), border_radius=12)
-        draw_text(screen, self.engine, self.enemy_poke.species if self.enemy_poke else "?",
-                  SCREEN_W - 205, 370, 16, C_TEXT_DIM, anchor="center")
+        if self.enemy_poke:
+            spr = self.engine.get_sprite(self.enemy_poke.species, 130)
+            if spr:
+                screen.blit(spr, (SCREEN_W - 270, 310))
+            else:
+                draw_text(screen, self.engine, self.enemy_poke.species,
+                          SCREEN_W - 205, 370, 16, C_TEXT_DIM, anchor="center")
 
         # Message log
         self.log.draw(screen, self.engine)
@@ -871,7 +885,8 @@ class BattleScene(Scene):
                 border = C_GREEN if ratio > 0.5 else C_YELLOW
             pygame.draw.rect(screen, color, (bx, by, 72, 28), border_radius=4)
             pygame.draw.rect(screen, border, (bx, by, 72, 28), 1, border_radius=4)
-            draw_text(screen, self.engine, p.species[:8], bx + 36, by + 4, 11,
+            draw_pokemon_sprite(screen, self.engine, p.species, bx + 2, by + 2, 16)
+            draw_text(screen, self.engine, p.species[:8], bx + 44, by + 4, 11,
                       C_TEXT_BRIGHT, anchor="midtop")
             draw_text(screen, self.engine,
                       "KO" if p.is_fainted() else f"{p.current_hp}/{p.max_hp}",
@@ -942,10 +957,12 @@ class ShopScene(Scene):
         self.message_color = C_TEXT
         self.selected_member = None
         self.selected_poke = None
+        self.scroll_y = 0
         self._build_main()
 
     def _build_main(self):
         self.phase = "main"
+        self.scroll_y = 0
         bx = SCREEN_W // 2 - 150
         self.buttons = [
             Button("Upgrade League Member", bx, 300, 300, 42,
@@ -964,6 +981,7 @@ class ShopScene(Scene):
     def _start_action(self, action):
         if action == "view_teams":
             self.phase = "view_teams"
+            self.scroll_y = 0
             self.sub_buttons = [
                 Button("Back", SCREEN_W // 2 - 60, SCREEN_H - 60, 120, 40,
                        callback=self._build_main, font_size=16, border_color=C_ACCENT),
@@ -971,6 +989,7 @@ class ShopScene(Scene):
 
     def _pick_member_start(self):
         self.phase = "pick_member"
+        self.scroll_y = 0
         self.sub_buttons = []
         for i, member in enumerate(self.state.league):
             label = f"{member.display_name()} ({len(member.team)} Pokemon)"
@@ -996,13 +1015,14 @@ class ShopScene(Scene):
             self._build_member_actions(member)
 
     def _build_champion_actions(self, member):
+        self.scroll_y = 0
         self.sub_buttons = []
         for i, p in enumerate(member.team):
             cost = 50
             label = f"Level Up {p.species} Lv.{p.level} → {p.level + 1}  (${cost})"
             btn = Button(label, SCREEN_W // 2 - 220, 220 + i * 48, 440, 40,
                          callback=lambda poke=p: self._do_champion_levelup(poke),
-                         font_size=15, border_color=C_GREEN)
+                         font_size=15, border_color=C_GREEN, tag=p.species)
             self.sub_buttons.append(btn)
         self.sub_buttons.append(
             Button("Cancel", SCREEN_W // 2 - 60, 220 + len(member.team) * 48 + 10, 120, 36,
@@ -1032,7 +1052,7 @@ class ShopScene(Scene):
             self.sub_buttons.append(
                 Button(label, bx - 70, 220, 440, 42,
                        callback=lambda: self._do_upgrade_pokemon(member, next_species),
-                       font_size=15, border_color=C_ACCENT)
+                       font_size=15, border_color=C_ACCENT, tag=next_species)
             )
         else:
             self.sub_buttons.append(
@@ -1069,12 +1089,13 @@ class ShopScene(Scene):
             self._show_message("Not enough money! Need $100.", C_RED)
             return
         self.phase = "pick_poke_move"
+        self.scroll_y = 0
         self.sub_buttons = []
         for i, p in enumerate(member.team):
             label = f"{p.species} Lv.{p.level}  ({', '.join(p.moves)})"
             btn = Button(label, SCREEN_W // 2 - 220, 220 + i * 48, 440, 40,
                          callback=lambda poke=p: self._show_move_upgrades(poke),
-                         font_size=15, border_color=C_ACCENT)
+                         font_size=15, border_color=C_ACCENT, tag=p.species)
             self.sub_buttons.append(btn)
         self.sub_buttons.append(
             Button("Cancel", SCREEN_W // 2 - 60, 220 + len(member.team) * 48 + 10, 120, 36,
@@ -1084,6 +1105,7 @@ class ShopScene(Scene):
     def _show_move_upgrades(self, poke):
         self.selected_poke = poke
         self.phase = "pick_move_upgrade"
+        self.scroll_y = 0
         self.sub_buttons = []
         row = 0
 
@@ -1153,6 +1175,13 @@ class ShopScene(Scene):
                 for btn in self.buttons:
                     btn.handle_event(e)
             else:
+                if e.type == pygame.MOUSEWHEEL:
+                    old = self.scroll_y
+                    self.scroll_y -= e.y * 30
+                    self.scroll_y = max(0, self.scroll_y)
+                    shift = old - self.scroll_y
+                    for btn in self.sub_buttons:
+                        btn.rect.y += shift
                 for btn in self.sub_buttons:
                     btn.handle_event(e)
 
@@ -1179,16 +1208,17 @@ class ShopScene(Scene):
                 btn.draw(screen, self.engine)
 
         elif self.phase == "view_teams":
-            y = 140
+            y = 140 - self.scroll_y
             for member in self.state.league:
                 draw_text(screen, self.engine, member.display_name(), 60, y, 18, C_ACCENT)
                 y += 24
                 for p in member.team:
                     types_str = "/".join(p.types)
                     moves_str = ", ".join(p.moves)
+                    draw_pokemon_sprite(screen, self.engine, p.species, 80, y, 18)
                     draw_text(screen, self.engine,
                               f"  {p.species} Lv.{p.level} [{types_str}] - {moves_str}",
-                              80, y, 14, C_TEXT)
+                              102, y, 14, C_TEXT)
                     y += 20
                 y += 6
             for btn in self.sub_buttons:
@@ -1199,6 +1229,9 @@ class ShopScene(Scene):
                       f"{self.selected_member.display_name()} — Level Up (+1 Lv, $50 each)",
                       SCREEN_W // 2, 170, 20, C_ACCENT, anchor="midtop")
             for btn in self.sub_buttons:
+                if btn.tag:
+                    draw_pokemon_sprite(screen, self.engine, btn.tag,
+                                        btn.rect.x - 38, btn.rect.y + 4, 32)
                 btn.draw(screen, self.engine)
 
         elif self.phase == "member_actions":
@@ -1206,15 +1239,23 @@ class ShopScene(Scene):
                       f"Upgrades for {self.selected_member.display_name()}:",
                       SCREEN_W // 2, 180, 20, C_ACCENT, anchor="midtop")
             for btn in self.sub_buttons:
+                if btn.tag:
+                    draw_pokemon_sprite(screen, self.engine, btn.tag,
+                                        btn.rect.x - 38, btn.rect.y + 5, 32)
                 btn.draw(screen, self.engine)
 
         elif self.phase in ("pick_poke_move", "pick_move_upgrade"):
             header = f"Upgrade move for {self.selected_member.display_name()}:"
             if self.phase == "pick_move_upgrade":
                 header = f"Pick upgrade for {self.selected_poke.species}:  ($100)"
+                draw_pokemon_sprite(screen, self.engine, self.selected_poke.species,
+                                    SCREEN_W // 2 - 20, 155, 24)
             draw_text(screen, self.engine, header,
                       SCREEN_W // 2, 180, 20, C_ACCENT, anchor="midtop")
             for btn in self.sub_buttons:
+                if btn.tag:
+                    draw_pokemon_sprite(screen, self.engine, btn.tag,
+                                        btn.rect.x - 38, btn.rect.y + 4, 32)
                 btn.draw(screen, self.engine)
 
         else:
@@ -1269,11 +1310,12 @@ class LeagueScene(Scene):
 
             for j, p in enumerate(member.team):
                 py = y + 30 + j * 28
+                draw_pokemon_sprite(screen, self.engine, p.species, 75, py, 20)
                 draw_text(screen, self.engine, f"{p.species} Lv.{p.level}",
-                          75, py, 15, C_TEXT_BRIGHT)
-                draw_type_badges(screen, self.engine, p.types, 220, py, 12)
+                          100, py, 15, C_TEXT_BRIGHT)
+                draw_type_badges(screen, self.engine, p.types, 245, py, 12)
                 moves = ", ".join(p.moves)
-                draw_text(screen, self.engine, moves, 370, py + 2, 13, C_TEXT_DIM)
+                draw_text(screen, self.engine, moves, 395, py + 2, 13, C_TEXT_DIM)
 
             y += panel_h + 8
 

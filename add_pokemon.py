@@ -7,6 +7,7 @@ Usage:
     python add_pokemon.py
     Then paste a Bulbapedia URL when prompted.
 """
+import os
 import random
 import re
 import sys
@@ -35,6 +36,30 @@ def fetch_page(url: str) -> BeautifulSoup:
     resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=30)
     resp.raise_for_status()
     return BeautifulSoup(resp.text, "html.parser")
+
+
+SPRITES_DIR = "sprites"
+
+
+def parse_sprite_url(soup: BeautifulSoup) -> str | None:
+    """Extract the main artwork image URL from the infobox."""
+    table = soup.find("table", class_="roundy")
+    if table:
+        img = table.find("img")
+        if img and img.get("src"):
+            return img["src"]
+    return None
+
+
+def download_sprite(name: str, sprite_url: str):
+    """Download a sprite image and save as sprites/<name>.png."""
+    os.makedirs(SPRITES_DIR, exist_ok=True)
+    dest = os.path.join(SPRITES_DIR, f"{name}.png")
+    resp = requests.get(sprite_url, headers={"User-Agent": USER_AGENT}, timeout=30)
+    resp.raise_for_status()
+    with open(dest, "wb") as f:
+        f.write(resp.content)
+    return dest
 
 
 def parse_name(soup: BeautifulSoup) -> str:
@@ -656,6 +681,16 @@ def process_pokemon(url: str):
     abilities = parse_abilities(soup, known_abilities)
     learnset = parse_learnset(soup)
     evo_chain = parse_evolution_chain(soup, name)
+
+    # ── Download sprite ──
+    sprite_url = parse_sprite_url(soup)
+    sprite_path = None
+    if sprite_url:
+        sprite_path = download_sprite(name, sprite_url)
+        print(f"  Sprite saved: {sprite_path}")
+    else:
+        print("  ⚠ Could not find sprite image on page")
+
     # Build display-friendly chain names (deduplicated, ordered)
     evo_names = []
     for _, n in evo_chain:

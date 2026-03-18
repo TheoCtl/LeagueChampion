@@ -2,6 +2,7 @@
 Pokemon League Champion - Pygame Engine & UI Widgets
 Core rendering, scene management, and reusable UI components.
 """
+import os
 import pygame
 import sys
 
@@ -66,18 +67,48 @@ class Engine:
 
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+        # Get native display resolution for high-quality scaling
+        info = pygame.display.Info()
+        self.display_w = info.current_w
+        self.display_h = info.current_h
+        self.real_screen = pygame.display.set_mode(
+            (self.display_w, self.display_h), pygame.FULLSCREEN)
         pygame.display.set_caption("Pokemon League Champion")
+        # Logical render surface at base resolution
+        self.screen = pygame.Surface((SCREEN_W, SCREEN_H))
+        # Compute scale factor preserving aspect ratio
+        scale = min(self.display_w / SCREEN_W, self.display_h / SCREEN_H)
+        self.scaled_w = int(SCREEN_W * scale)
+        self.scaled_h = int(SCREEN_H * scale)
+        self.offset_x = (self.display_w - self.scaled_w) // 2
+        self.offset_y = (self.display_h - self.scaled_h) // 2
+        self._inv_scale = 1.0 / scale
         self.clock = pygame.time.Clock()
         self.scene = None
         self.running = True
         # Font cache
         self._fonts = {}
+        # Sprite cache
+        self._sprites = {}
 
     def font(self, size):
         if size not in self._fonts:
             self._fonts[size] = pygame.font.SysFont("Segoe UI", size)
         return self._fonts[size]
+
+    def get_sprite(self, species, size=None):
+        """Load and cache a Pokemon sprite. Returns Surface or None."""
+        key = (species, size)
+        if key not in self._sprites:
+            path = os.path.join("sprites", f"{species}.png")
+            if os.path.exists(path):
+                img = pygame.image.load(path).convert_alpha()
+                if size:
+                    img = pygame.transform.smoothscale(img, (size, size))
+                self._sprites[key] = img
+            else:
+                self._sprites[key] = None
+        return self._sprites[key]
 
     def set_scene(self, scene):
         self.scene = scene
@@ -86,18 +117,35 @@ class Engine:
     def run(self):
         while self.running:
             dt = self.clock.tick(FPS) / 1000.0
-            events = pygame.event.get()
-            for e in events:
+            events = []
+            for e in pygame.event.get():
                 if e.type == pygame.QUIT:
                     self.running = False
                     pygame.quit()
                     sys.exit()
+                # Translate mouse coordinates from display to logical space
+                if e.type in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN,
+                              pygame.MOUSEBUTTONUP):
+                    mx = int((e.pos[0] - self.offset_x) * self._inv_scale)
+                    my = int((e.pos[1] - self.offset_y) * self._inv_scale)
+                    if e.type == pygame.MOUSEMOTION:
+                        e = pygame.event.Event(
+                            e.type, pos=(mx, my), rel=e.rel, buttons=e.buttons)
+                    else:
+                        e = pygame.event.Event(
+                            e.type, pos=(mx, my), button=e.button)
+                events.append(e)
 
             if self.scene:
                 self.scene.handle_events(events)
                 self.scene.update(dt)
                 self.scene.draw(self.screen)
 
+            # Smooth-scale logical surface to display
+            self.real_screen.fill((0, 0, 0))
+            scaled = pygame.transform.smoothscale(
+                self.screen, (self.scaled_w, self.scaled_h))
+            self.real_screen.blit(scaled, (self.offset_x, self.offset_y))
             pygame.display.flip()
 
 
@@ -378,15 +426,27 @@ def draw_text(screen, engine, text, x, y, size=18, color=C_TEXT, anchor="topleft
     return rect
 
 
+def draw_pokemon_sprite(screen, engine, species, x, y, size=24):
+    """Draw a Pokemon sprite at (x, y). Returns width used (size or 0)."""
+    spr = engine.get_sprite(species, size)
+    if spr:
+        screen.blit(spr, (x, y))
+        return size
+    return 0
+
+
 def draw_pokemon_card(screen, engine, pokemon, x, y, w=280, show_moves=False):
     """Draw a compact Pokemon info card. Returns height used."""
+    sprite_size = 40
     h = 70 if not show_moves else 70 + len(pokemon.moves) * 22 + 8
     panel = Panel(x, y, w, h)
     panel.draw(screen, engine)
 
-    # Name and level
+    # Sprite + Name and level
+    sx = x + 10
+    draw_pokemon_sprite(screen, engine, pokemon.species, sx, y + 6, sprite_size)
     draw_text(screen, engine, f"{pokemon.species}  Lv.{pokemon.level}",
-              x + 10, y + 8, 18, C_TEXT_BRIGHT)
+              sx + sprite_size + 6, y + 8, 18, C_TEXT_BRIGHT)
 
     # Types
     draw_type_badges(screen, engine, pokemon.types, x + 10, y + 32, 12)
