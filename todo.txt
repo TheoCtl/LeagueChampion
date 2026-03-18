@@ -2,7 +2,6 @@
 
 - implement other gens
 
-- map + playable character (central hub + teleporters to other gyms to upgrade their leaders)
 - other ways to get money than beating challengers
 - améliorer boucle de gameplay, peut-être se concentrer indépendemment sur chaque leader et pas sur les 18 en même temps, ou pouvoir passer directement à un leader en particulier...
 

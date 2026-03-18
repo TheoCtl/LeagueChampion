@@ -118,7 +118,8 @@ class TitleScene(Scene):
         champion = Trainer(self.state.player_name, "Champion", team_data)
         self.state.league = league_members + [champion]
         self.state.champion = champion
-        self.engine.set_scene(DayScene(self.state))
+        from overworld import OverworldScene
+        self.engine.set_scene(OverworldScene(self.state))
 
     def handle_events(self, events):
         for e in events:
@@ -285,15 +286,9 @@ class DayScene(Scene):
                    callback=self._fight, font_size=22,
                    color=(85, 35, 35), hover_color=(125, 45, 45),
                    border_color=C_RED, text_color=C_TEXT_BRIGHT),
-            Button("Shop", bx, 910, 320, 50,
-                   callback=self._shop, font_size=22,
-                   color=(35, 55, 80), hover_color=(45, 75, 115),
-                   border_color=C_ACCENT),
-            Button("League Overview", bx, 970, 320, 50,
-                   callback=self._overview, font_size=22),
-            Button("Quit", bx, 1030, 320, 40,
-                   callback=self._quit, font_size=18,
-                   color=(45, 45, 50), hover_color=(65, 45, 45),
+            Button("Back", bx, 920, 320, 45,
+                   callback=self._go_back, font_size=20,
+                   color=(45, 45, 50), hover_color=(55, 55, 65),
                    border_color=C_TEXT_DIM),
         ]
 
@@ -304,15 +299,9 @@ class DayScene(Scene):
         self.engine.set_scene(BattleScene(self.state, league_member,
                                           self.state.current_challenger))
 
-    def _shop(self):
-        self.engine.set_scene(ShopScene(self.state))
-
-    def _overview(self):
-        self.engine.set_scene(LeagueScene(self.state))
-
-    def _quit(self):
-        pygame.quit()
-        sys.exit()
+    def _go_back(self):
+        from overworld import OverworldScene
+        self.engine.set_scene(OverworldScene(self.state))
 
     def handle_events(self, events):
         for e in events:
@@ -1177,7 +1166,8 @@ class ResultScene(Scene):
                           border_color=C_GREEN if won else C_YELLOW)
 
     def _continue(self):
-        self.engine.set_scene(DayScene(self.state))
+        from overworld import OverworldScene
+        self.engine.set_scene(OverworldScene(self.state))
 
     def handle_events(self, events):
         for e in events:
@@ -1228,7 +1218,7 @@ class ResultScene(Scene):
 class ShopScene(Scene):
     """Shop for upgrades — tier-based system."""
 
-    def __init__(self, state):
+    def __init__(self, state, target_member=None):
         super().__init__()
         self.state = state
         self.phase = "main"
@@ -1240,7 +1230,10 @@ class ShopScene(Scene):
         self.selected_member = None
         self.selected_poke = None
         self.scroll_y = 0
-        self._build_main()
+        if target_member is not None:
+            self._pick_member(target_member)
+        else:
+            self._build_main()
 
     def _build_main(self):
         self.phase = "main"
@@ -1501,7 +1494,8 @@ class ShopScene(Scene):
         self.message_timer = 3.0
 
     def _back(self):
-        self.engine.set_scene(DayScene(self.state))
+        from overworld import OverworldScene
+        self.engine.set_scene(OverworldScene(self.state))
 
     def handle_events(self, events):
         for e in events:
@@ -1653,7 +1647,8 @@ class LeagueScene(Scene):
                           border_color=C_ACCENT)
 
     def _back(self):
-        self.engine.set_scene(DayScene(self.state))
+        from overworld import OverworldScene
+        self.engine.set_scene(OverworldScene(self.state))
 
     def handle_events(self, events):
         for e in events:

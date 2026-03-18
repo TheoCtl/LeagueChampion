@@ -1,0 +1,376 @@
+"""
+Pokemon League Champion - Overworld Scene
+2D top-down explorable map with player movement, NPC interaction,
+and transition to battle/shop/league scenes.
+"""
+import pygame
+import sys
+from engine import (
+    Scene, SCREEN_W, SCREEN_H,
+    C_BG, C_TEXT, C_TEXT_DIM, C_TEXT_BRIGHT, C_GOLD, C_YELLOW, C_GREEN,
+    C_RED, C_ACCENT, C_PANEL, C_PANEL_BORDER, C_CYAN,
+    draw_text, draw_gradient_v,
+)
+from world import (
+    TILE_SIZE, Player, Camera, build_champion_room,
+)
+
+
+class OverworldScene(Scene):
+    """Main overworld scene — explorable 2D map of the Champion's Hall."""
+
+    def __init__(self, state):
+        super().__init__()
+        self.state = state
+
+        # Build map from league data
+        self.game_map = build_champion_room(state.league)
+
+        # Player position (restore from state or use default)
+        px = getattr(state, 'player_pos_x', 19)
+        py = getattr(state, 'player_pos_y', 22)
+        pd = getattr(state, 'player_dir', 'up')
+        self.player = Player(px, py)
+        self.player.direction = pd
+
+        # Camera
+        self.camera = Camera(
+            self.game_map.pixel_width(),
+            self.game_map.pixel_height(),
+        )
+        self.camera.snap(self.player.center_x, self.player.center_y)
+
+        # Interaction state
+        self.show_prompt = False
+        self.prompt_text = ""
+        self.prompt_action = None
+
+        # Dialogue state
+        self.dialogue_active = False
+        self.dialogue_name = ""
+        self.dialogue_text = ""
+
+        # Fade transition
+        self.fade_alpha = 255      # start faded-in (fade from black)
+        self.fading_in = True      # currently fading in from black
+        self.fading_out = False
+        self.fade_target = None    # scene to transition to after fade-out
+        self.fade_speed = 600      # alpha change per second
+
+        # Torch flicker timer
+        self.torch_timer = 0.0
+
+    def _save_player_pos(self):
+        self.state.player_pos_x = self.player.grid_x
+        self.state.player_pos_y = self.player.grid_y
+        self.state.player_dir = self.player.direction
+
+    # ── Events ─────────────────────────────────────────────────────
+
+    def handle_events(self, events):
+        for e in events:
+            if e.type == pygame.KEYDOWN:
+                if self.fading_out:
+                    continue
+                if self.dialogue_active:
+                    if e.key in (pygame.K_SPACE, pygame.K_RETURN, pygame.K_ESCAPE):
+                        self.dialogue_active = False
+                    continue
+                if e.key in (pygame.K_SPACE, pygame.K_RETURN):
+                    self._interact()
+                elif e.key == pygame.K_ESCAPE:
+                    self._try_quit()
+
+    def _try_quit(self):
+        pygame.quit()
+        sys.exit()
+
+    # ── Interaction ────────────────────────────────────────────────
+
+    def _interact(self):
+        if not self.prompt_action:
+            return
+        if self.prompt_action == 'arena':
+            self._go_arena()
+        elif self.prompt_action == 'shop':
+            self._go_shop()
+        elif self.prompt_action == 'league':
+            self._go_league()
+        elif self.prompt_action.startswith('npc:'):
+            self._talk_npc(self.prompt_action[4:])
+
+    def _go_arena(self):
+        self._save_player_pos()
+        from game import DayScene
+        # Ensure challenger exists
+        if self.state.current_challenger is None:
+            from generator import generate_challenger
+            from pokemon import Trainer
+            data = generate_challenger(self.state.challengers_beaten)
+            self.state.current_challenger = Trainer(
+                data["name"], data["title"], data["team"])
+            self.state.challenger_position = 0
+        self._start_fade(DayScene(self.state))
+
+    def _go_shop(self):
+        self._save_player_pos()
+        from game import ShopScene
+        self._start_fade(ShopScene(self.state))
+
+    def _go_league(self):
+        self._save_player_pos()
+        from game import LeagueScene
+        self._start_fade(LeagueScene(self.state))
+
+    def _talk_npc(self, name):
+        npc = self.game_map.get_npc_by_name(name)
+        if npc:
+            self.dialogue_active = True
+            self.dialogue_name = npc.name
+            self.dialogue_text = npc.dialogue
+
+    def _start_fade(self, target_scene):
+        self.fading_out = True
+        self.fade_alpha = 0
+        self.fade_target = target_scene
+
+    # ── Update ─────────────────────────────────────────────────────
+
+    def update(self, dt):
+        # Fade transitions
+        if self.fading_in:
+            self.fade_alpha -= self.fade_speed * dt
+            if self.fade_alpha <= 0:
+                self.fade_alpha = 0
+                self.fading_in = False
+            return
+        if self.fading_out:
+            self.fade_alpha += self.fade_speed * dt
+            if self.fade_alpha >= 255:
+                self.fade_alpha = 255
+                if self.fade_target:
+                    self.engine.set_scene(self.fade_target)
+            return
+
+        if self.dialogue_active:
+            return
+
+        # Torch animation
+        self.torch_timer += dt
+
+        # Movement (held keys for continuous walk)
+        keys = pygame.key.get_pressed()
+        if not self.player.moving:
+            moved = False
+            if keys[pygame.K_UP] or keys[pygame.K_w]:
+                moved = self.player.try_move(
+                    'up', self.game_map.collision,
+                    self.game_map.width, self.game_map.height)
+            elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+                moved = self.player.try_move(
+                    'down', self.game_map.collision,
+                    self.game_map.width, self.game_map.height)
+            elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                moved = self.player.try_move(
+                    'left', self.game_map.collision,
+                    self.game_map.width, self.game_map.height)
+            elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                moved = self.player.try_move(
+                    'right', self.game_map.collision,
+                    self.game_map.width, self.game_map.height)
+            if not moved:
+                # Still update direction for facing
+                if keys[pygame.K_UP] or keys[pygame.K_w]:
+                    self.player.direction = 'up'
+                elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+                    self.player.direction = 'down'
+                elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                    self.player.direction = 'left'
+                elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                    self.player.direction = 'right'
+
+        self.player.update(dt)
+
+        # Camera follow
+        self.camera.follow(self.player.center_x, self.player.center_y, 0.15)
+
+        # Check interaction prompts
+        self._update_prompts()
+
+    def _update_prompts(self):
+        fx, fy = self.player.facing_tile()
+        px, py = self.player.grid_x, self.player.grid_y
+
+        # Check standing + facing
+        standing = self.game_map.get_interaction(px, py)
+        facing = self.game_map.get_interaction(fx, fy)
+        interaction = standing or facing
+
+        if interaction:
+            self.show_prompt = True
+            if interaction == 'arena':
+                self.prompt_text = "Enter Battle Arena"
+                self.prompt_action = 'arena'
+            elif interaction == 'shop':
+                self.prompt_text = "Enter Shop"
+                self.prompt_action = 'shop'
+            elif interaction == 'league':
+                self.prompt_text = "View League Standings"
+                self.prompt_action = 'league'
+            elif interaction.startswith('npc:'):
+                npc_name = interaction[4:]
+                self.prompt_text = f"Talk to {npc_name}"
+                self.prompt_action = interaction
+            else:
+                self.show_prompt = False
+                self.prompt_action = None
+        else:
+            self.show_prompt = False
+            self.prompt_action = None
+
+    # ── Draw ───────────────────────────────────────────────────────
+
+    def draw(self, screen):
+        screen.fill((0, 0, 0))
+
+        cam_x, cam_y = int(self.camera.x), int(self.camera.y)
+
+        # Draw map
+        map_surf = self.game_map.render()
+        screen.blit(map_surf, (-cam_x, -cam_y))
+
+        # Draw NPCs
+        for npc in self.game_map.npcs:
+            sx, sy = self.camera.apply(
+                npc.grid_x * TILE_SIZE, npc.grid_y * TILE_SIZE)
+            # Skip if off-screen
+            if sx < -TILE_SIZE or sx > SCREEN_W or sy < -TILE_SIZE or sy > SCREEN_H:
+                continue
+            spr = npc.get_sprite(self.engine)
+            if spr:
+                sw, sh = spr.get_size()
+                screen.blit(spr, (sx + (TILE_SIZE - sw) // 2,
+                                  sy + (TILE_SIZE - sh) // 2))
+            # NPC name tag above
+            draw_text(screen, self.engine, npc.name,
+                      sx + TILE_SIZE // 2, sy - 6, 11,
+                      C_TEXT_DIM, anchor="midbottom")
+
+        # Draw player
+        player_spr = self.player.get_sprite()
+        if player_spr:
+            ppx, ppy = self.camera.apply(
+                self.player.pixel_x, self.player.pixel_y)
+            screen.blit(player_spr, (int(ppx), int(ppy)))
+
+        # ── HUD ──
+        self._draw_hud(screen)
+
+        # ── Interaction prompt ──
+        if self.show_prompt and not self.dialogue_active:
+            self._draw_prompt(screen)
+
+        # ── Dialogue box ──
+        if self.dialogue_active:
+            self._draw_dialogue(screen)
+
+        # ── Location label ──
+        self._draw_location(screen)
+
+        # ── Fade overlay ──
+        if self.fade_alpha > 0:
+            fade = pygame.Surface((SCREEN_W, SCREEN_H))
+            fade.fill((0, 0, 0))
+            fade.set_alpha(int(self.fade_alpha))
+            screen.blit(fade, (0, 0))
+
+    # ── HUD ────────────────────────────────────────────────────────
+
+    def _draw_hud(self, screen):
+        # Top bar
+        hud = pygame.Surface((SCREEN_W, 44), pygame.SRCALPHA)
+        hud.fill((18, 22, 38, 180))
+        screen.blit(hud, (0, 0))
+        pygame.draw.line(screen, (55, 65, 100), (0, 44), (SCREEN_W, 44), 1)
+
+        draw_text(screen, self.engine, f"Day {self.state.day}",
+                  20, 10, 22, C_GOLD, bold=True)
+        draw_text(screen, self.engine, f"${self.state.money}",
+                  160, 12, 20, C_YELLOW, bold=True)
+        draw_text(screen, self.engine,
+                  f"Challengers Defeated: {self.state.challengers_beaten}",
+                  SCREEN_W - 20, 12, 18, C_GREEN, anchor="topright")
+
+        # Controls hint (bottom left)
+        hint = pygame.Surface((280, 30), pygame.SRCALPHA)
+        hint.fill((18, 22, 38, 140))
+        screen.blit(hint, (0, SCREEN_H - 30))
+        draw_text(screen, self.engine, "ARROWS: Move  |  SPACE: Interact",
+                  10, SCREEN_H - 26, 13, C_TEXT_DIM)
+
+    # ── Interaction prompt ─────────────────────────────────────────
+
+    def _draw_prompt(self, screen):
+        text = f"[SPACE]  {self.prompt_text}"
+        font = self.engine.font(18)
+        tw, th = font.size(text)
+        bw = tw + 40
+        bh = 42
+        bx = SCREEN_W // 2 - bw // 2
+        by = SCREEN_H - 90
+
+        # Background
+        bg = pygame.Surface((bw, bh), pygame.SRCALPHA)
+        bg.fill((18, 22, 38, 210))
+        screen.blit(bg, (bx, by))
+        # Border
+        pygame.draw.rect(screen, C_ACCENT, (bx, by, bw, bh), 2,
+                         border_radius=6)
+        # Text
+        draw_text(screen, self.engine, text,
+                  SCREEN_W // 2, by + 10, 18, C_TEXT_BRIGHT, anchor="midtop")
+
+    # ── Dialogue box ───────────────────────────────────────────────
+
+    def _draw_dialogue(self, screen):
+        box_w = 800
+        box_h = 160
+        bx = SCREEN_W // 2 - box_w // 2
+        by = SCREEN_H - box_h - 40
+
+        # Background
+        bg = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
+        bg.fill((18, 22, 38, 230))
+        screen.blit(bg, (bx, by))
+
+        # Border
+        pygame.draw.rect(screen, C_PANEL_BORDER, (bx, by, box_w, box_h), 2,
+                         border_radius=8)
+
+        # Name plate
+        pygame.draw.rect(screen, (28, 34, 58),
+                         (bx + 10, by - 18, 160, 24), border_radius=4)
+        pygame.draw.rect(screen, C_ACCENT,
+                         (bx + 10, by - 18, 160, 24), 1, border_radius=4)
+        draw_text(screen, self.engine, self.dialogue_name,
+                  bx + 20, by - 16, 16, C_ACCENT, bold=True)
+
+        # Dialogue text (multi-line)
+        lines = self.dialogue_text.split('\n')
+        for i, line in enumerate(lines):
+            draw_text(screen, self.engine, line,
+                      bx + 24, by + 14 + i * 24, 17, C_TEXT)
+
+        # Continue prompt
+        draw_text(screen, self.engine, "[SPACE] to close",
+                  bx + box_w - 20, by + box_h - 24, 13,
+                  C_TEXT_DIM, anchor="topright")
+
+    # ── Location label ─────────────────────────────────────────────
+
+    def _draw_location(self, screen):
+        # Show location name at top-center briefly or always
+        label = self.game_map.name
+        if label:
+            draw_text(screen, self.engine, label,
+                      SCREEN_W // 2, 10, 16, C_TEXT_DIM, anchor="midtop")
